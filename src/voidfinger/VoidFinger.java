@@ -20,6 +20,10 @@ public class VoidFinger {
             System.out.println(oe.getLocalizedMessage());
             this.molecule = null;
         }
+        catch (OctNodeException one) {
+            System.out.println(one.getLocalizedMessage());
+            this.molecule = null;
+        }
     }
 
     public static void main(String[] args) {
