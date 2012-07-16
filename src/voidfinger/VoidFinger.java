@@ -1,6 +1,7 @@
 package voidfinger;
 
 import java.io.FileNotFoundException;
+import java.io.IOException;
 import octree.*;
 
 public class VoidFinger {
@@ -10,6 +11,13 @@ public class VoidFinger {
         try {
             this.molecule = Octree.parseFromFile(filename);
         } catch (FileNotFoundException fe) {
+            System.out.println(fe.getLocalizedMessage());
+            this.molecule = null;
+        } catch (IOException ioe) {
+            System.out.println(ioe.getLocalizedMessage());
+            this.molecule = null;
+        } catch (OctreeException oe) {
+            System.out.println(oe.getLocalizedMessage());
             this.molecule = null;
         }
     }
