@@ -31,13 +31,17 @@ public class OctNode {
         this.sign = sign;
     }
 
-    public OctNode(Integer depth, Boolean signs[]) {
+    public OctNode(Integer depth, Boolean signs[], Float coords[]) throws OctNodeException {
         this.depth = depth;
         this.type = OCTNODE_LEAF;
         this.signs = Arrays.copyOf(signs, signs.length);
+        if (coords.length != 3) throw new InvalidOctNodeCreationParameterException();
+        this.x = coords[0];
+        this.y = coords[1];
+        this.z = coords[2];
     }
     
-    public OctNode(Integer depth, byte signs) {
+    public OctNode(Integer depth, byte signs, Float coords[]) throws OctNodeException {
         this.depth = depth;
         this.type = OCTNODE_LEAF;
         byte temp = signs;
@@ -45,6 +49,10 @@ public class OctNode {
             this.signs[i] = (temp % 2 == 0)?true:false;
             temp /= 2;
         }
+        if (coords.length != 3) throw new InvalidOctNodeCreationParameterException();
+        this.x = coords[0];
+        this.y = coords[1];
+        this.z = coords[2];
     }
 
     // Getters
