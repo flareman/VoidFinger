@@ -2,7 +2,9 @@ package voidfinger;
 
 import java.io.FileNotFoundException;
 import java.io.IOException;
-import octree.*;
+import octree.OctNodeException;
+import octree.Octree;
+import octree.OctreeException;
 
 public class VoidFinger {
     private Octree molecule = null;
@@ -25,8 +27,13 @@ public class VoidFinger {
             this.molecule = null;
         }
     }
+    
+    public Octree getMolecule() { return this.molecule; }
 
     public static void main(String[] args) {
         VoidFinger instance = new VoidFinger(args[0]);
+        try {
+            System.out.println(instance.getMolecule().getDepth());
+        } catch (Exception e) { e.printStackTrace(); }
     }
 }
