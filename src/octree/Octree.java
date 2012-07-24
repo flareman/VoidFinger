@@ -1,6 +1,11 @@
 package octree;
 
-import java.io.*;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
 public class Octree {
@@ -18,6 +23,9 @@ public class Octree {
     
     public OctNode getRoot() { return root; }
     
+    public Integer getDepth() { return this.depth; }
+    public Float getLength() { return this.length; }
+    
     static public Octree parseFromFile(String filename) throws FileNotFoundException, IOException, OctreeException, OctNodeException {
         // Open filename and read content to byte buffer
         File file = new File(filename);
@@ -31,21 +39,43 @@ public class Octree {
             throw new InvalidSOGFileSyntaxOctreeException();
 
         // Read origin of axes and cube length
-        DataInputStream header = new DataInputStream(new ByteArrayInputStream(contents, 14, 114));
+        // ByteBuffer is used due to endianness concerns; Java works in big endian by default, we usually read little endian data
+        // The system's native endianness is used instead
+        ByteBuffer header = ByteBuffer.wrap(contents, 15, 113).order(ByteOrder.nativeOrder());
         Float origin[] = new Float[3];
-        origin[0] = header.readFloat();
-        origin[1] = header.readFloat();
-        origin[2] = header.readFloat();
-        Float length = header.readFloat();
+        origin[0] = header.getFloat();
+        origin[1] = header.getFloat();
+        origin[2] = header.getFloat();
+        Float length = header.getFloat();
         
-        DataInputStream stream = new DataInputStream(new ByteArrayInputStream(contents, 128, contents.length-128));
-        OctNode newRoot = recurseParse(stream);
-        Integer depth = newRoot.getMaxDepth();
+        ByteBuffer buffer = ByteBuffer.wrap(contents, 128, contents.length-128).order(ByteOrder.nativeOrder());
+        Integer depth = buffer.getInt();
+        if (depth <= 0) throw new InvalidSOGFileSyntaxOctreeException();
+        depth = 31 - Integer.numberOfLeadingZeros(depth);
+        OctNode newRoot = recurseParse(0, buffer);
         return new Octree(depth, origin, length, newRoot);
     }
     
-    static private OctNode recurseParse(DataInputStream stream) {
-        // Actual parsing happens here; create an appropriate OctNode and return it, after calling self recursively if needed
-        return null;
+    static private OctNode recurseParse(Integer currentDepth, ByteBuffer buffer) throws IOException, OctNodeException, OctreeException {
+        Byte type = buffer.get();
+        switch (type) {
+            case OctNode.OCTNODE_EMPTY:
+                Byte value = buffer.get();
+                return new OctNode(currentDepth, (value == 0)?false:true);
+            case OctNode.OCTNODE_LEAF:
+                Byte signs = buffer.get();
+                Float coords[] = new Float[3];
+                coords[0] = buffer.getFloat();
+                coords[1] = buffer.getFloat();
+                coords[2] = buffer.getFloat();
+                return new OctNode(currentDepth, signs, coords);
+            case OctNode.OCTNODE_INTERMEDIATE:
+                OctNode children[] = new OctNode[8];
+                for (int i = 0; i < 8; i++)
+                    children[i] = recurseParse(currentDepth+1, buffer);
+                return new OctNode(currentDepth, children);
+            default:
+                throw new InvalidSOGFileSyntaxOctreeException();
+        }
     }
 }
