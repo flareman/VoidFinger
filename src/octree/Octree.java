@@ -6,26 +6,29 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class Octree {
     private Integer depth;
     private Float length, origin[];
     private OctNode root = null;
+    private Integer dimensions = 3;
     
     private Octree(Integer depth, Float[] origin, Float length, OctNode root) {
         this.depth = depth;
         this.root = root;
-        origin = new Float[3];
+        this.origin = new Float[3];
         this.origin = Arrays.copyOf(origin, 3);
         this.length = length;
     }
     
     public OctNode getRoot() { return root; }
-    
     public Integer getDepth() { return this.depth; }
     public Float getLength() { return this.length; }
-    
+    public Integer getDimensions() { return this.dimensions; }
+    public ArrayList<Float[]> getAllVertices() throws OctNodeException { return this.root.getAllVertices(); }
+
     static public Octree parseFromFile(String filename) throws FileNotFoundException, IOException, OctreeException, OctNodeException {
         // Open filename and read content to byte buffer
         File file = new File(filename);

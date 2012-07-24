@@ -115,4 +115,26 @@ public class OctNode {
                 throw new UnrecognizedOctNodeTypeException();
         }
     }
+
+    public ArrayList<Float[]> getAllVertices() throws OctNodeException {
+        ArrayList<Float[]> result = new ArrayList<Float[]>();
+        switch (type) {
+            case OCTNODE_INTERMEDIATE:
+                for (OctNode node: this.children)
+                    result.addAll(node.getAllVertices());
+                return result;
+            case OCTNODE_LEAF:
+                Float[] coords = new Float[3];
+                coords[0] = this.x;
+                coords[1] = this.y;
+                coords[2] = this.z;
+                result.add(coords);
+                return result;
+            case OCTNODE_EMPTY:
+                return result;
+            default:
+                throw new UnrecognizedOctNodeTypeException();
+        }
+        
+    }
 }
