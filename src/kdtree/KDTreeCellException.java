@@ -16,3 +16,9 @@ class KDTreeCellWrongPointCoordinatesException extends KDTreeCellException {
         super("The points of the kd-tree must have the same number of dimensions as the tree");
     }
 }
+
+class CoordinateComparatorException extends KDTreeCellException {
+    public CoordinateComparatorException() {
+        super("Negative dimension value passed to comparator constructor");
+    }
+}

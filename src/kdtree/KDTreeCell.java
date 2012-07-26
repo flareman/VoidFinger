@@ -1,75 +1,106 @@
 package kdtree;
 
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Iterator;
 
 public class KDTreeCell {
     private Integer splitDimension;
     private Integer dimensions;
-    private Float[] lengths = null;
-    private Float splitValue;
-    private Boolean isLeaf;
-    private Boolean isEmpty;
+    private Integer depth;
     private KDTreeCell[] children = null;
     private Float[] point = null;
-    
-    public KDTreeCell(Integer dimensions, Float[] lengths) throws KDTreeCellException {
-        this.isEmpty = true;
-        this.isLeaf = true;
-        this.children = null;
-        this.point = null;
+
+    public KDTreeCell(Integer dimensions, Integer depth,
+            ArrayList<ArrayList<Float[]>> points) throws KDTreeCellException {
         if (dimensions <= 0)
             throw new KDTreeCellWrongCreationArgumentException();
-        if (lengths.length != dimensions)
+        if (depth < 0)
             throw new KDTreeCellWrongCreationArgumentException();
-        this.splitDimension = 0;
-        Float maxDimension = lengths[0];
-        for (int i = 0; i < dimensions; i++) {
-            if (lengths[i] < 0)
-                throw new KDTreeCellWrongCreationArgumentException();
-            if (lengths[i] > maxDimension) {
-                maxDimension = lengths[i];
-                this.splitDimension = i;
-            }
-        }
-        this.lengths = new Float[lengths.length];
-        this.lengths = Arrays.copyOf(lengths, lengths.length);
+        if (points.size() != dimensions)
+            throw new KDTreeCellWrongCreationArgumentException();
         this.dimensions = dimensions;
-        this.splitValue = maxDimension / 2;
-    }
-    
-    public void addPoint(Float[] coords) throws KDTreeCellException {
-        if (this.isLeaf)
-            if (this.isEmpty) {
-                this.isEmpty = false;
-                if (coords.length != this.dimensions)
-                    throw new KDTreeCellWrongPointCoordinatesException();
-                this.point = new Float[coords.length];
-                this.point = Arrays.copyOf(coords, coords.length);
-            } else {
-                Float[] newLengths = new Float[this.dimensions];
-                newLengths = Arrays.copyOf(this.lengths, this.dimensions);
-                newLengths[this.splitDimension] /= 2;
+        this.splitDimension = depth % dimensions;
+        this.depth = depth;
+        if (points != null) {
+            if (points.get(0).size() > 2) {
+                ArrayList<ArrayList<Float[]>> leftPoints = new ArrayList<ArrayList<Float[]>>();
+                ArrayList<ArrayList<Float[]>> rightPoints = new ArrayList<ArrayList<Float[]>>();
+                ArrayList<Float[]> master = points.get(this.splitDimension);
+                Integer medianID = master.size()/2;
+                while (medianID >= 0 &&
+                        master.get(medianID)[this.splitDimension] == master.get(medianID-1)[this.splitDimension] )
+                    medianID--;
+                Float[] median = master.get(medianID);
+                this.point = new Float[this.dimensions];
+                this.point = Arrays.copyOf(median, median.length);
+                master.remove(median);
+                for (int i = 0; i < this.dimensions; i++) {
+                    ArrayList<Float[]> left = new ArrayList<Float[]>();
+                    ArrayList<Float[]> right = new ArrayList<Float[]>();
+                    if (i == this.splitDimension) {
+                        left.addAll(master.subList(0, medianID));
+                        right.addAll(master.subList(medianID, master.size()));
+                    } else {
+                        ArrayList<Float[]> slave = points.get(i);
+                        for (Iterator<Float[]> it = slave.iterator(); it.hasNext();) {
+                            Float[] v = it.next();
+                            Integer j = -1;
+                            Float[] foundMedian = null;
+                            while (++j < this.dimensions) {
+                                if (v[j] != median[j]) continue;
+                                else if (j == this.dimensions-1)
+                                    foundMedian = v;
+                            }
+                            if (foundMedian != null) {
+                                it.remove();
+                                continue;
+                            } else if (v[this.splitDimension] < median[this.splitDimension])
+                                left.add(v);
+                            else right.add(v);
+                        }
+                    }
+                    leftPoints.add(left);
+                    rightPoints.add(right);
+                }
                 this.children = new KDTreeCell[2];
-                this.children[0] = new KDTreeCell(this.dimensions, newLengths);
-                this.children[1] = new KDTreeCell(this.dimensions, newLengths);
-                if (this.splitValue - this.point[this.splitDimension] <= 0)
-                    this.children[0].addPoint(this.point);
-                else this.children[1].addPoint(this.point);
-                if (this.splitValue - coords[this.splitDimension] <= 0)
-                    this.children[0].addPoint(coords);
-                else this.children[1].addPoint(coords);
-                this.point = null;
-                this.isLeaf = false;
+                this.children[0] = new KDTreeCell(dimensions, depth+1, leftPoints);
+                this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints);
+            } else switch (points.get(0).size()) {
+                case 2:
+                    ArrayList<ArrayList<Float[]>> leftPoints = new ArrayList<ArrayList<Float[]>>();
+                    ArrayList<ArrayList<Float[]>> rightPoints = new ArrayList<ArrayList<Float[]>>();
+                    for (int i = 0; i < this.dimensions; i++) {
+                        ArrayList<Float[]> temp = new ArrayList<Float[]>();
+                        temp.add(points.get(0).get(0));
+                        leftPoints.add(temp);
+                        rightPoints.add(temp);
+                    }
+                    this.children = new KDTreeCell[2];
+                    this.children[0] = new KDTreeCell(dimensions, depth+1, leftPoints);
+                    this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints);
+                    break;
+                case 1:
+                    this.point = new Float[this.dimensions];
+                    Float[] leafPoint = points.get(0).get(0);
+                    this.point = Arrays.copyOf(leafPoint, leafPoint.length);
+                    this.children = null;
+                    break;
+                case 0:
+                    this.children = null;
+                    this.point = null;
+                    break;
             }
-        else {
-            if (this.splitValue - coords[this.splitDimension] <= 0)
-                this.children[0].addPoint(coords);
-            else this.children[1].addPoint(coords);
+        } else {
+            this.children = null;
+            this.point = null;
         }
     }
-    
+
     public Integer getMaxDepth() {
-        if (this.isLeaf) return (this.isEmpty)?0:1;
-        else return this.children[0].getMaxDepth() + this.children[1].getMaxDepth();
+        if (this.children == null) return this.depth;
+        else return Math.max(this.children[0].getMaxDepth(), this.children[1].getMaxDepth());
     }
+    
+    public Integer getDepth() { return this.depth; }
 }
