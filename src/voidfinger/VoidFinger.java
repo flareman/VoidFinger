@@ -14,6 +14,11 @@ public class VoidFinger {
     
     public VoidFinger(String filename) {
         try {
+            System.out.println("Volumetric Inner Distance Fingerprinting Utility");
+            System.out.println("(c) 2012 Spyridon Smparounis, George Papakyriakopoulos");
+            System.out.println("National and Kapodistrian University of Athens");
+            System.out.println("Department of Informatics and Telecommunications");
+            System.out.println();
             this.molecule = Octree.parseFromFile(filename);
             this.kdtree = new KDTree(this.molecule);
         } catch (FileNotFoundException fe) {
@@ -38,8 +43,5 @@ public class VoidFinger {
 
     public static void main(String[] args) {
         VoidFinger instance = new VoidFinger(args[0]);
-        try {
-            
-        } catch (Exception e) { e.printStackTrace(); }
     }
 }
