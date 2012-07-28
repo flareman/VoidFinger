@@ -26,6 +26,13 @@ public class Octree {
     public Integer getDepth() { return this.depth; }
     public Float getLength() { return this.length; }
     public Float[] getOrigin() { return Arrays.copyOf(this.origin, this.origin.length); }
+    public Float[] getOriginAntipode() {
+        Float[] result = Arrays.copyOf(this.origin, this.origin.length);
+        result[0] += this.length;
+        result[1] += this.length;
+        result[2] += this.length;
+        return result;
+    }
     public Integer getDimensions() { return this.dimensions; }
     public ArrayList<Float[]> getAllVertices() throws OctNodeException { return this.root.getAllVertices(); }
 
