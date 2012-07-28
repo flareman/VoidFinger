@@ -28,9 +28,10 @@ public class KDTreeCell {
                 ArrayList<ArrayList<Float[]>> rightPoints = new ArrayList<ArrayList<Float[]>>();
                 ArrayList<Float[]> master = points.get(this.splitDimension);
                 Integer medianID = master.size()/2;
-                while (medianID >= 0 &&
-                        master.get(medianID)[this.splitDimension] == master.get(medianID-1)[this.splitDimension] )
-                    medianID--;
+                while (medianID > 0) {
+                    if (master.get(medianID-1)[this.splitDimension] >= master.get(medianID)[this.splitDimension]) medianID--;
+                    else break;
+                }
                 Float[] median = master.get(medianID);
                 this.point = new Float[this.dimensions];
                 this.point = Arrays.copyOf(median, median.length);
@@ -49,7 +50,7 @@ public class KDTreeCell {
                             Float[] foundMedian = null;
                             while (++j < this.dimensions) {
                                 if (v[j] != median[j]) continue;
-                                else if (j == this.dimensions-1)
+                                if (j == this.dimensions-1)
                                     foundMedian = v;
                             }
                             if (foundMedian != null) {
@@ -81,7 +82,6 @@ public class KDTreeCell {
                     this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints);
                     break;
                 case 1:
-                    this.point = new Float[this.dimensions];
                     Float[] leafPoint = points.get(0).get(0);
                     this.point = Arrays.copyOf(leafPoint, leafPoint.length);
                     this.children = null;
