@@ -103,9 +103,10 @@ public class OctNode {
     public Float[] getOrigin() { return Arrays.copyOf(this.origin, this.origin.length); }
     
     public Float[] getOriginAntipode() {
-        Float[] result = Arrays.copyOf(this.coords, this.coords.length);
-        for (Float f: result)
-            f += this.length;
+        Float[] result = Arrays.copyOf(this.origin, this.origin.length);
+        result[0] += this.length;
+        result[1] += this.length;
+        result[2] += this.length;
         return result;
     }
 

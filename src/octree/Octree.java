@@ -76,9 +76,9 @@ public class Octree {
                 OctNode children[] = new OctNode[8];
                 for (int i = 0; i < 8; i++) {
                     Float[] newOrigin = new Float[3];
-                    newOrigin[0] = origin[0]+((i%2==1)?length/2:0);
+                    newOrigin[2] = origin[2]+((i%2==1)?length/2:0);
                     newOrigin[1] = origin[1]+(((i>>1)%2==1)?length/2:0);
-                    newOrigin[2] = origin[2]+(((i>>2)%2==1)?length/2:0);
+                    newOrigin[0] = origin[0]+(((i>>2)%2==1)?length/2:0);
                     children[i] = recurseParse(currentDepth+1, buffer, newOrigin, length/2);
                 }
                 return new OctNode(currentDepth, children, origin, length);
