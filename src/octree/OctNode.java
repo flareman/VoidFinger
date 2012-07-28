@@ -97,14 +97,10 @@ public class OctNode {
     
     public Float[] getCoordinates() throws OctNodeException {
         if (this.type != OCTNODE_LEAF) throw new InvalidOctNodeTypeException();
-        Float[] result = Arrays.copyOf(this.coords, this.coords.length);
-        return result;
+        return Arrays.copyOf(this.coords, this.coords.length);
     }
     
-    public Float[] getOrigin() {
-        Float[] result = Arrays.copyOf(this.origin, this.origin.length);
-        return result;
-    }
+    public Float[] getOrigin() { return Arrays.copyOf(this.origin, this.origin.length); }
     
     public Float[] getOriginAntipode() {
         Float[] result = Arrays.copyOf(this.coords, this.coords.length);

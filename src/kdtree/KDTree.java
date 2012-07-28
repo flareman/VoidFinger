@@ -2,7 +2,6 @@ package kdtree;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Comparator;
 import octree.OctNodeException;
 import octree.Octree;
 
@@ -50,10 +49,13 @@ public class KDTree {
             System.out.println("Created a kd-tree with depth: " + this.root.getMaxDepth());
         } catch (CoordinateComparatorException cce) {
             this.root =  null;
+            cce.printStackTrace();
         } catch (KDTreeCellException kdtce) {
             this.root = null;
-        } catch (OctNodeException kdtce) {
+            kdtce.printStackTrace();
+        } catch (OctNodeException one) {
             this.root = null;
+            one.printStackTrace();
         }
     }
     
