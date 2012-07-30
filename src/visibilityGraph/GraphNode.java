@@ -1,5 +1,6 @@
 package visibilityGraph;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 
 public class GraphNode {
@@ -25,6 +26,6 @@ public class GraphNode {
     }
     
     public Float[] getCoords(){
-        return this.dimensions;
+        return Arrays.copyOf(this.dimensions,this.dimensions.length);
     }
 }
