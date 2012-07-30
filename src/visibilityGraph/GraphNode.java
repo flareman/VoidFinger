@@ -3,14 +3,14 @@ import java.util.ArrayList;
 import java.util.Collections;
 
 public class GraphNode {
-    private ArrayList<Float> dimensions = new ArrayList<Float>();
+    private Float[] dimensions;
     private int numOfDims;
     
     public GraphNode(int dimNum, Float[] dims) throws InvalidNumberOfDimensionsException{
         numOfDims = dimNum;
         if(dimNum != dims.length)
             throw new InvalidNumberOfDimensionsException();
-        Collections.addAll(dimensions, dims);
+        dimensions = dims;
     }
     
     public int getNumOfDims(){
@@ -21,6 +21,10 @@ public class GraphNode {
         if(dim >= numOfDims || dim < 0){
             throw new InvalidDimensionRequestException();
         }
-        return dimensions.get(dim);
+        return dimensions[dim];
+    }
+    
+    public Float[] getCoords(){
+        return this.dimensions;
     }
 }

@@ -43,4 +43,43 @@ public class Graph {
         return dist;
     }
     
+    private boolean checkIntersection(Float[] p ,octree.OctNode node){
+        return false;
+    }
+    
+    private ArrayList<Float[]> getVisibleNodesForPoint(Float[] point) throws Exception{
+        ArrayList<Float[]> visibleNodes = new ArrayList<Float[]>();
+        recurseGetVisibleNodes(point,visibleNodes, surface.getRoot());
+        return visibleNodes;
+    }
+    
+    private void recurseGetVisibleNodes(Float[] p , ArrayList<Float[]> visibleNodes, octree.OctNode root) throws Exception{
+        if(checkIntersection(p,root)){
+                if(root.getChildren().isEmpty())// MUST TELL DOC TO ALTER IMPLEMENTATION CAUSE HE IS STUPID - SAME GOES FOR GET COORDS
+                    visibleNodes.add(root.getCoordinates());
+                else{
+                    for(octree.OctNode ch : root.getChildren())
+                        recurseGetVisibleNodes(p, visibleNodes, ch);
+                }
+        }
+        
+    }
+    
+    private void createAllEdges() throws Exception{// Have Questions
+        for(GraphNode gn : nodes){
+            ArrayList<Float[]> visible = getVisibleNodesForPoint(gn.getCoords());
+            for(Float[] p : visible){
+                for(GraphNode gn2 : nodes){
+                    int i;
+                    for(i=0;i<numOfDims;i++){
+                        if(p[i] != gn2.getCoords()[i])
+                            break;
+                    }
+                    if(i == numOfDims){
+                        
+                    }                        
+                }
+            }
+        }
+    }
 }
