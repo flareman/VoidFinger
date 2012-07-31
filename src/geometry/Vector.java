@@ -73,7 +73,7 @@ public class Vector {
         return dp/this.getMeasure();
     }
     
-    public Float distangeFromPoint(Point p) {
+    public Float distanceFromPoint(Point p) {
         Vector n = this.unitVector();
         Vector pv = new Vector(p).inverseVector();
         n.scale(this.getProjection(pv));
