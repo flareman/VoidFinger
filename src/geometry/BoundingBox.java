@@ -2,8 +2,8 @@ package geometry;
 
 public class BoundingBox {
     static public final int BB_INTERSECTS = 0;
-    static public final int BB_INFRONT = 0;
-    static public final int BB_BEHIND = 0;
+    static public final int BB_INFRONT = 1;
+    static public final int BB_BEHIND = 2;
     private Point min, max;
     
     public BoundingBox(Point a, Point b) throws GeometryException {
