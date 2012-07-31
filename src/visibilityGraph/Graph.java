@@ -44,4 +44,11 @@ public class Graph {
     }
     
     
+    public void iterateToCreateEdges(){
+        for(int i=0;i<nodes.size();i++){
+            for(int j=i+1;j<nodes.size();j++){
+                //create ray and call octree code here
+            }
+        }
+    }
 }
