@@ -100,6 +100,7 @@ public class OctNode {
         return Arrays.copyOf(this.coords, this.coords.length);
     }
     
+    public int getNodeType() { return this.type; }
     public Float[] getOrigin() { return Arrays.copyOf(this.origin, this.origin.length); }
     
     public Float[] getOriginAntipode() {
