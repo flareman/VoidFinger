@@ -15,29 +15,37 @@ public class OctNode {
     private Boolean sign = false;
     private Boolean[] signs = new Boolean[8];
     private ArrayList<OctNode> children = new ArrayList<OctNode>();
-    private Float x, y, z;
+    private Float coords[], origin[], length, potential = 0.0f;
 
     // OctNode constructors
-    public OctNode(Integer depth, OctNode children[]) throws OctNodeException {
+    public OctNode(Integer depth, OctNode children[], Float[] origin, Float length) throws OctNodeException {
         this.depth = depth;
         this.type = OCTNODE_INTERMEDIATE;
         if (children.length != 8) throw new InvalidOctNodeCreationParameterException();
         this.children.addAll(Arrays.asList(children));
+        this.length = length;
+        this.origin = Arrays.copyOf(origin, origin.length);
     }
 
-    public OctNode(Integer depth, Boolean sign) {
+    public OctNode(Integer depth, Boolean sign, Float[] origin, Float length) {
         this.depth = depth;
         this.type = OCTNODE_EMPTY;
         this.sign = sign;
+        this.length = length;
+        this.origin = Arrays.copyOf(origin, origin.length);
     }
 
-    public OctNode(Integer depth, Boolean signs[]) {
+    public OctNode(Integer depth, Boolean signs[], Float coords[], Float[] origin, Float length) throws OctNodeException {
         this.depth = depth;
         this.type = OCTNODE_LEAF;
         this.signs = Arrays.copyOf(signs, signs.length);
+        if (coords.length != 3) throw new InvalidOctNodeCreationParameterException();
+        this.coords = Arrays.copyOf(coords, coords.length);
+        this.length = length;
+        this.origin = Arrays.copyOf(origin, origin.length);
     }
     
-    public OctNode(Integer depth, byte signs) {
+    public OctNode(Integer depth, byte signs, Float coords[], Float[] origin, Float length) throws OctNodeException {
         this.depth = depth;
         this.type = OCTNODE_LEAF;
         byte temp = signs;
@@ -45,6 +53,10 @@ public class OctNode {
             this.signs[i] = (temp % 2 == 0)?true:false;
             temp /= 2;
         }
+        if (coords.length != 3) throw new InvalidOctNodeCreationParameterException();
+        this.coords = Arrays.copyOf(coords, coords.length);
+        this.length = length;
+        this.origin = Arrays.copyOf(origin, origin.length);
     }
 
     // Getters
@@ -85,10 +97,20 @@ public class OctNode {
     
     public Float[] getCoordinates() throws OctNodeException {
         if (this.type != OCTNODE_LEAF) throw new InvalidOctNodeTypeException();
-        Float result[] = {this.x, this.y, this.z};
-        return result;
+        return Arrays.copyOf(this.coords, this.coords.length);
     }
     
+    public Float[] getOrigin() { return Arrays.copyOf(this.origin, this.origin.length); }
+    
+    public Float[] getOriginAntipode() {
+        Float[] result = Arrays.copyOf(this.origin, this.origin.length);
+        result[0] += this.length;
+        result[1] += this.length;
+        result[2] += this.length;
+        return result;
+    }
+
+    public Float getLength() { return this.length; }
     public Integer getNodeDepth() { return this.depth; }
     
     public Integer getMaxDepth() throws OctNodeException {
@@ -106,5 +128,24 @@ public class OctNode {
             default:
                 throw new UnrecognizedOctNodeTypeException();
         }
+    }
+
+    public ArrayList<Float[]> getAllVertices() throws OctNodeException {
+        ArrayList<Float[]> result = new ArrayList<Float[]>();
+        switch (type) {
+            case OCTNODE_INTERMEDIATE:
+                for (OctNode node: this.children)
+                    result.addAll(node.getAllVertices());
+                return result;
+            case OCTNODE_LEAF:
+                Float[] temp = Arrays.copyOf(this.coords, this.coords.length);
+                result.add(temp);
+                return result;
+            case OCTNODE_EMPTY:
+                return result;
+            default:
+                throw new UnrecognizedOctNodeTypeException();
+        }
+        
     }
 }
