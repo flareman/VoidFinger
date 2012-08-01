@@ -3,11 +3,19 @@ package geometry;
 public class Vector {
     private Point endpoint;
     
+    public Vector(Float d) {
+        this.endpoint = new Point(d);
+    }
+
+    public Vector(Float x, Float y) {
+        this.endpoint = new Point(x, y);
+    }
+
     public Vector(Float x, Float y, Float z) {
         this.endpoint = new Point(x, y, z);
     }
 
-    public Vector(Point start, Point end) {
+    public Vector(Point start, Point end) throws GeometryException {
         Vector v1 = new Vector(start);
         Vector v2 = new Vector(end);
         v2.subtract(v1);
@@ -26,28 +34,29 @@ public class Vector {
         return this.endpoint.getCoords();
     }
     
+    public Float getCoordinate(Integer dimension) throws GeometryException {
+        return this.endpoint.getCoordinate(dimension);
+    }
+    
     public Point getPoint() { return this.endpoint; }
+    public Integer getDimensions() { return this.endpoint.getDimensions(); }
 
     public Vector inverseVector() {
         return new Vector(this.endpoint.symmetricPoint());
     }
 
-    public void add(Vector v) {
-        try {
-            this.endpoint = this.endpoint.transposedPoint(v.getCoords());
-        } catch (GeometryException ge) {}
+    public void add(Vector v) throws GeometryException {
+        this.endpoint = this.endpoint.transposedPoint(v.getCoords());
     }
     
-    public void subtract(Vector v) {
-        try {
-            this.endpoint = this.endpoint.transposedPoint(v.inverseVector().getCoords());
-        } catch (GeometryException ge) {}
+    public void subtract(Vector v) throws GeometryException {
+        this.endpoint = this.endpoint.transposedPoint(v.inverseVector().getCoords());
     }
     
     public Float getMeasure() {
         Float result = 0.0f;
         try {
-            result = this.endpoint.distanceFrom(Point.AXIS_ZERO);
+            result = this.endpoint.euclideanDistanceFrom(Point.VOLUME_ZERO);
         } catch (GeometryException ge) {}
         return result;
     }
@@ -59,21 +68,21 @@ public class Vector {
     public Vector unitVector() {
         Vector result = null;
         try {
-            result = new Vector(this.endpoint.scaledPoint(this.getMeasure()).getCoords());
+            result = new Vector(this.endpoint.scaledPoint(1/this.getMeasure()).getCoords());
         } catch (GeometryException ge) {}
         return result;
     }
     
-    public Float getProjection(Vector v) {
-        Float[] vCoords = v.getCoords();
-        Float[] thisCoords = this.getCoords();
+    public Float getProjection(Vector v) throws GeometryException {
+        if (v.getDimensions() != this.getDimensions())
+            throw new GeometryException("Vector projections require vectors of same dimensionality");
         Float dp = 0.0f;
-        for (int i = 0; i < vCoords.length; i++)
-            dp += vCoords[i]*thisCoords[i];
+        for (int i = 0; i < this.getDimensions(); i++)
+            dp += v.getCoordinate(i)*this.getCoordinate(i);
         return dp/this.getMeasure();
     }
     
-    public Float distanceFromPoint(Point p) {
+    public Float distanceFromPoint(Point p) throws GeometryException {
         Vector n = this.unitVector();
         Vector pv = new Vector(p).inverseVector();
         n.scale(this.getProjection(pv));

@@ -1,6 +1,5 @@
 package kdtree;
 
-import geometry.GeometryException;
 import geometry.Point;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -20,7 +19,7 @@ public class KDTree {
             throw new KDTreeInvalidCreationArgumentException();
         try {
             this.dimensions = dimensions;
-            this.root = new KDTreeCell(dimensions, 0, null, Point.AXIS_ZERO, new Point(100.0f, 100.0f, 100.0f));
+            this.root = new KDTreeCell(dimensions, 0, null, Point.VOLUME_ZERO, new Point(100.0f, 100.0f, 100.0f));
             System.out.println("Created an empty kd-tree");
         } catch (KDTreeCellException kdtce) {
             this.root = null;
@@ -37,22 +36,18 @@ public class KDTree {
             // compared with the naive approach of selecting the median point for splitting
             // at each recursion step, while guaranteeing the creation of a quality, balanced
             // tree.
-            ArrayList<ArrayList<Float[]>> pointArrays = new ArrayList<ArrayList<Float[]>>();
-            ArrayList<Float[]> points = octree.getAllVertices();
+            ArrayList<ArrayList<Point>> pointArrays = new ArrayList<ArrayList<Point>>();
+            ArrayList<Point> points = octree.getAllVertices();
             Collections.sort(points, new CoordinateComparator(0));
             pointArrays.add(points);
             for (int i = 1; i < dimensions; i++) {
-                ArrayList<Float[]> temp = new ArrayList<Float[]>();
+                ArrayList<Point> temp = new ArrayList<Point>();
                 temp.addAll(points);
                 Collections.sort(temp, new CoordinateComparator(i));
                 pointArrays.add(temp);
             }
-            Point min = null;
-            Point max = null;
-            try {
-                min = new Point(octree.getOrigin());
-                max = new Point(octree.getOriginAntipode());
-            } catch (GeometryException ge) {}
+            Point min = octree.getOrigin();
+            Point max = octree.getOriginAntipode();
             this.root = new KDTreeCell(dimensions, 0, pointArrays, min, max);
             System.out.println("Created a kd-tree with depth: " + this.root.getMaxDepth());
         } catch (CoordinateComparatorException cce) {

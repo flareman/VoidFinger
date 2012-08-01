@@ -1,11 +1,13 @@
 package kdtree;
 
+import geometry.GeometryException;
+import geometry.Point;
 import java.util.Comparator;
 
 // Comparator class implementation for comparing and sorting Float[] objects by specific element ID
 // This is used for sorting the vertex ArrayLists at the first step of kd-tree creation, and
 // also for binary-finding the split point in the subsequent recursions
-class CoordinateComparator implements Comparator<Float[]> {
+class CoordinateComparator implements Comparator<Point> {
     private Integer dimension;
     
     public CoordinateComparator(Integer dimension) throws CoordinateComparatorException {
@@ -13,7 +15,9 @@ class CoordinateComparator implements Comparator<Float[]> {
         else this.dimension = dimension;
     }
     
-    public int compare(Float[] left, Float[] right) {
-        return (left[this.dimension] > right[this.dimension])?1:((left[this.dimension] < right[this.dimension])?-1:0);
+    public int compare(Point left, Point right) {
+        try {
+            return (left.getCoordinate(this.dimension) > right.getCoordinate(this.dimension))?1:((left.getCoordinate(this.dimension) < right.getCoordinate(this.dimension))?-1:0);
+        } catch (GeometryException ge) { return 0; }
     }
 }
