@@ -1,5 +1,8 @@
 package kdtree;
 
+import geometry.BoundingBox;
+import geometry.GeometryException;
+import geometry.Point;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -10,15 +13,21 @@ public class KDTreeCell {
     private Integer depth;
     private KDTreeCell[] children = null;
     private Float[] point = null;
+    private BoundingBox cell;
+
 
     public KDTreeCell(Integer dimensions, Integer depth,
-            ArrayList<ArrayList<Float[]>> points) throws KDTreeCellException {
+            ArrayList<ArrayList<Float[]>> points, Point min, Point max) throws KDTreeCellException {
         if (dimensions <= 0)
             throw new KDTreeCellWrongCreationArgumentException();
         if (depth < 0)
             throw new KDTreeCellWrongCreationArgumentException();
         if (points.size() != dimensions)
             throw new KDTreeCellWrongCreationArgumentException();
+        if (min == null || max == null)
+            throw new KDTreeCellWrongCreationArgumentException();
+        try { this.cell = new BoundingBox(min, max); }
+        catch (GeometryException ge) { throw new KDTreeCellWrongCreationArgumentException(); }
         this.dimensions = dimensions;
         this.splitDimension = depth % dimensions;
         this.depth = depth;
@@ -64,9 +73,20 @@ public class KDTreeCell {
                     leftPoints.add(left);
                     rightPoints.add(right);
                 }
+                Float[] leftNewMax = this.cell.getMaxPoint().getCoords();
+                Float[] rightNewMin = this.cell.getMinPoint().getCoords();
+                Integer newSplit = (depth + 1) % dimensions;
+                leftNewMax[newSplit] -= (leftNewMax[newSplit]-rightNewMin[newSplit])/2;
+                rightNewMin[newSplit] = leftNewMax[newSplit];
+                Point newMax = null;
+                Point newMin = null;
+                try {
+                    newMax = new Point(leftNewMax);
+                    newMin = new Point(rightNewMin);
+                } catch (GeometryException ge) {}
                 this.children = new KDTreeCell[2];
-                this.children[0] = new KDTreeCell(dimensions, depth+1, leftPoints);
-                this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints);
+                this.children[0] = new KDTreeCell(dimensions, depth+1, leftPoints, this.cell.getMinPoint(), newMax);
+                this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints, newMin, this.cell.getMaxPoint());
             } else switch (points.get(0).size()) {
                 case 2:
                     ArrayList<ArrayList<Float[]>> leftPoints = new ArrayList<ArrayList<Float[]>>();
@@ -77,9 +97,20 @@ public class KDTreeCell {
                         leftPoints.add(temp);
                         rightPoints.add(temp);
                     }
+                    Float[] leftNewMax = this.cell.getMaxPoint().getCoords();
+                    Float[] rightNewMin = this.cell.getMinPoint().getCoords();
+                    Integer newSplit = (depth + 1) % dimensions;
+                    leftNewMax[newSplit] -= (leftNewMax[newSplit]-rightNewMin[newSplit])/2;
+                    rightNewMin[newSplit] = leftNewMax[newSplit];
+                    Point newMax = null;
+                    Point newMin = null;
+                    try {
+                        newMax = new Point(leftNewMax);
+                        newMin = new Point(rightNewMin);
+                    } catch (GeometryException ge) {}
                     this.children = new KDTreeCell[2];
-                    this.children[0] = new KDTreeCell(dimensions, depth+1, leftPoints);
-                    this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints);
+                    this.children[0] = new KDTreeCell(dimensions, depth+1, leftPoints, this.cell.getMinPoint(), newMax);
+                    this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints, newMin, this.cell.getMaxPoint());
                     break;
                 case 1:
                     Float[] leafPoint = points.get(0).get(0);
@@ -97,6 +128,8 @@ public class KDTreeCell {
         }
     }
 
+    
+    
     public Integer getMaxDepth() {
         if (this.children == null) return this.depth;
         else return Math.max(this.children[0].getMaxDepth(), this.children[1].getMaxDepth());

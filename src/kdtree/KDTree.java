@@ -1,5 +1,7 @@
 package kdtree;
 
+import geometry.GeometryException;
+import geometry.Point;
 import java.util.ArrayList;
 import java.util.Collections;
 import octree.OctNodeException;
@@ -18,7 +20,7 @@ public class KDTree {
             throw new KDTreeInvalidCreationArgumentException();
         try {
             this.dimensions = dimensions;
-            this.root = new KDTreeCell(dimensions, 0, null);
+            this.root = new KDTreeCell(dimensions, 0, null, Point.AXIS_ZERO, new Point(100.0f, 100.0f, 100.0f));
             System.out.println("Created an empty kd-tree");
         } catch (KDTreeCellException kdtce) {
             this.root = null;
@@ -45,7 +47,13 @@ public class KDTree {
                 Collections.sort(temp, new CoordinateComparator(i));
                 pointArrays.add(temp);
             }
-            this.root = new KDTreeCell(dimensions, 0, pointArrays);
+            Point min = null;
+            Point max = null;
+            try {
+                min = new Point(octree.getOrigin());
+                max = new Point(octree.getOriginAntipode());
+            } catch (GeometryException ge) {}
+            this.root = new KDTreeCell(dimensions, 0, pointArrays, min, max);
             System.out.println("Created a kd-tree with depth: " + this.root.getMaxDepth());
         } catch (CoordinateComparatorException cce) {
             this.root =  null;
