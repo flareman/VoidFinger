@@ -34,6 +34,19 @@ public class BoundingBox {
         return this.max;
     }
 
+    public Point getCenter() {
+        Float[] minCoords = this.min.getCoords();
+        Float[] maxCoords = this.max.getCoords();
+        Float[] center = new Float[minCoords.length];
+        for (int i = 0; i < minCoords.length; i++)
+            center[i] = (minCoords[i] + maxCoords[i])/2;
+        Point result = null;
+        try {
+            result = new Point(center);
+        } catch (GeometryException ge) {}
+        return result;
+    }
+    
     public BoundingBox transposedBox(Vector v) {
         BoundingBox result = null;
         try {
