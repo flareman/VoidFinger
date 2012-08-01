@@ -1,31 +1,30 @@
 package visibilityGraph;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
+import geometry.GeometryException;
+import geometry.Point;
 
 public class GraphNode {
-    private Float[] dimensions;
+    private Point point;
     private int numOfDims;
     
-    public GraphNode(int dimNum, Float[] dims) throws InvalidNumberOfDimensionsException{
+    public GraphNode(int dimNum, Point dims) throws InvalidNumberOfDimensionsException{
         numOfDims = dimNum;
-        if(dimNum != dims.length)
+        if(dimNum != dims.getDimensions())
             throw new InvalidNumberOfDimensionsException();
-        dimensions = dims;
+        point = dims;
     }
     
     public int getNumOfDims(){
         return this.numOfDims;
     }
     
-    public Float getDimension(int dim,int numOfDims) throws InvalidDimensionRequestException{
+    public Float getDimension(int dim,int numOfDims) throws InvalidDimensionRequestException,GeometryException{
         if(dim >= numOfDims || dim < 0){
             throw new InvalidDimensionRequestException();
         }
-        return dimensions[dim];
+        return point.getCoordinate(dim);
     }
     
-    public Float[] getCoords(){
-        return Arrays.copyOf(this.dimensions,this.dimensions.length);
+    public Point getPoint(){
+        return this.point;
     }
 }

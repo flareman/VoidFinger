@@ -1,4 +1,5 @@
 package visibilityGraph;
+import geometry.Point;
 import java.util.ArrayList;
 import octree.Octree;
 
@@ -8,15 +9,15 @@ public class Graph {
     private int numOfDims;
     private Octree surface;
     
-    public Graph(ArrayList<Float[]> nds, int dims) throws GraphException,GraphNodeException{
+    public Graph(ArrayList<Point> nds, int dims) throws GraphException,GraphNodeException{
         if(dims < 1 )
             throw new InvalidGraphNumberOfDimensionsException();
         if(nds.isEmpty())
             throw new EmptyNodeSetException();
         
         numOfDims = dims;
-        for(Float[] v : nds){
-            nodes.add(new GraphNode(dims, v));
+        for(Point p : nds){
+            nodes.add(new GraphNode(dims, p));
         }
         
     }
@@ -31,16 +32,6 @@ public class Graph {
     
     public GraphEdge getEdgeAtPosition(int x){
         return edges.get(x);
-    }
-    
-    public Float calculateEucledianDistance(GraphNode node1, GraphNode node2) throws GraphNodeException{
-        Float dist,acc;
-        acc = new Float(0);
-        for(int i=0;i<numOfDims;i++){
-            acc += new Float( Math.pow(Math.abs(node2.getDimension(i, numOfDims) - node1.getDimension(i,numOfDims)),numOfDims));
-        }
-        dist = new Float (Math.pow(acc,(1/numOfDims)));
-        return dist;
     }
     
     
