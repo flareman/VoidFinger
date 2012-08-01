@@ -8,9 +8,9 @@ import java.util.Arrays;
 
 public class OctNode {
     // Static class contants for value passing
-    static final int OCTNODE_INTERMEDIATE = 0;
-    static final int OCTNODE_EMPTY = 1;
-    static final int OCTNODE_LEAF = 2;
+    public static final int OCTNODE_INTERMEDIATE = 0;
+    public static final int OCTNODE_EMPTY = 1;
+    public static final int OCTNODE_LEAF = 2;
     
     // Private data members
     private Integer depth = 0;
