@@ -10,25 +10,28 @@ public class Plane {
     
     public Plane(Point p, Vector n) throws GeometryException {
         if (p == null || n == null) throw new GeometryException("Plane point and normal vector can't be null");
+        if (p.getDimensions() != n.getDimensions())
+            throw new GeometryException("Plane normal vector and origin point must have same dimensionality");
         this.origin = p;
         this.normal = n;
     }
     
     public Point getOrigin() { return this.origin; }
     public Vector getNormal() { return this.normal; }
+    public Integer getDimensions() { return this.origin.getDimensions(); }
     
-    public int compareToPlane(Point p) {
+    public int compareToPlane(Point p) throws GeometryException {
         Float d = this.normal.getProjection(new Vector(this.origin, p));
         if (d == 0) return POINT_ONPLANE;
         else if (d > 0) return POINT_INFRONT;
         else return POINT_BEHIND;
     }
     
-    public Boolean intersect(Vector v) {
+    public Boolean intersect(Vector v) throws GeometryException {
         return (this.normal.getProjection(v) == 0)?false:true;
     }
     
-    public Float distanceFromPoint(Point p) {
+    public Float distanceFromPoint(Point p) throws GeometryException {
         return this.normal.getProjection(new Vector(this.origin, p));
     }
 }

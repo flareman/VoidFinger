@@ -1,5 +1,7 @@
 package octree;
 
+import geometry.BoundingBox;
+import geometry.Point;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -7,34 +9,26 @@ import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class Octree {
     private Integer depth;
-    private Float length, origin[];
     private OctNode root = null;
-    private Integer dimensions = 3;
     
-    private Octree(Integer depth, Float[] origin, Float length, OctNode root) {
+    private Octree(Integer depth, OctNode root) throws OctreeException {
+        if (root == null) throw new OctreeException("Null OctNode passed as root in Octree constructor");
         this.depth = depth;
         this.root = root;
-        this.origin = Arrays.copyOf(origin, 3);
-        this.length = length;
     }
     
     public OctNode getRoot() { return root; }
     public Integer getDepth() { return this.depth; }
-    public Float getLength() { return this.length; }
-    public Float[] getOrigin() { return Arrays.copyOf(this.origin, this.origin.length); }
-    public Float[] getOriginAntipode() {
-        Float[] result = Arrays.copyOf(this.origin, this.origin.length);
-        result[0] += this.length;
-        result[1] += this.length;
-        result[2] += this.length;
-        return result;
-    }
-    public Integer getDimensions() { return this.dimensions; }
-    public ArrayList<Float[]> getAllVertices() throws OctNodeException { return this.root.getAllVertices(); }
+    public Float getLength() { return this.root.getLength(); }
+    public Point getOrigin() { return this.root.getOrigin(); }
+    public Point getOriginAntipode() { return this.root.getOriginAntipode(); }
+    public BoundingBox getBoundingBox() { return this.root.getBoundingBox(); }
+    
+    public Integer getDimensions() { return this.root.getDimensions(); }
+    public ArrayList<Point> getAllVertices() throws OctNodeException { return this.root.getAllVertices(); }
 
     static public Octree parseFromFile(String filename) throws FileNotFoundException, IOException, OctreeException, OctNodeException {
         // Open filename and read content to byte buffer
@@ -63,7 +57,7 @@ public class Octree {
         if (depth <= 0) throw new InvalidSOGFileSyntaxOctreeException();
         depth = 31 - Integer.numberOfLeadingZeros(depth);
         OctNode newRoot = recurseParse(0, buffer, origin, length);
-        return new Octree(depth, origin, length, newRoot);
+        return new Octree(depth, newRoot);
     }
     
     static private OctNode recurseParse(Integer currentDepth, ByteBuffer buffer, Float[] origin, Float length) throws IOException, OctNodeException, OctreeException {
