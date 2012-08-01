@@ -128,7 +128,8 @@ public class KDTreeCell {
         }
     }
 
-    
+    public BoundingBox getBoundingBox() { return this.cell; }
+    public Float getCenter() { return this.cell.getCenter(); }
     
     public Integer getMaxDepth() {
         if (this.children == null) return this.depth;
