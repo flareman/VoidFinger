@@ -26,6 +26,7 @@ public class Octree {
     public Point getOrigin() { return this.root.getOrigin(); }
     public Point getOriginAntipode() { return this.root.getOriginAntipode(); }
     public BoundingBox getBoundingBox() { return this.root.getBoundingBox(); }
+    public Float getMinNodeLength() { return new Float(this.getLength()/Math.pow(2, this.depth)); }
     
     public Integer getDimensions() { return this.root.getDimensions(); }
     public ArrayList<Point> getAllVertices() throws OctNodeException { return this.root.getAllVertices(); }
