@@ -76,7 +76,7 @@ public class Graph {
                 boolean visible=false;
                 int clusterCount = 1;
                 float D = surface.getMinNodeLength();
-                float distance = 0;
+                float distance;
                 for(int k=1;(k<projections.size() && clusterCount < 3);k++){
                     distance = projections.get(i) - projections.get(i-1);
                     if(distance > (1.5f*D))
