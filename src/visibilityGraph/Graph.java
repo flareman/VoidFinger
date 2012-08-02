@@ -3,6 +3,7 @@ import geometry.GeometryException;
 import geometry.Point;
 import geometry.Vector;
 import java.util.ArrayList;
+import java.util.Collections;
 import octree.OctNode;
 import octree.OctNodeException;
 import octree.Octree;
@@ -64,6 +65,20 @@ public class Graph {
                 //create ray and call octree code here
                 Vector ray = new Vector(nodes.get(i).getPoint(),nodes.get(j).getPoint());
                 ArrayList<Point> visibleList = getOctreeLeafs(nodes.get(i).getPoint(), ray);
+                ArrayList<Float> projections = new ArrayList<Float>();
+                if(projections.isEmpty())
+                    continue;
+                for(Point p : visibleList){
+                    Vector v = new Vector(p);
+                    projections.add(ray.getProjection(v));
+                }
+                Collections.sort(projections);
+                boolean visible=false;
+                int clusterCount = 1;
+                float D;
+                for(int k=1;k<projections.size();k++){
+                    
+                }
             }
         }
     }
