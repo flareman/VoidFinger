@@ -11,3 +11,7 @@ class InvalidGraphNumberOfDimensionsException extends GraphException{
 class EmptyNodeSetException extends GraphException{
     public EmptyNodeSetException(){super("The Node set provided for graph construction is empty.");}
 }
+
+class ZeroProjectedClustersException extends GraphException{
+    public ZeroProjectedClustersException(){super("No octree leaf nodes intersectwith ray.");}
+}
