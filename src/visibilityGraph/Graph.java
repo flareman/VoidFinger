@@ -7,6 +7,7 @@ import java.util.Collections;
 import octree.OctNode;
 import octree.OctNodeException;
 import octree.Octree;
+import octree.OctreeException;
 
 public class Graph {
     private ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
@@ -59,7 +60,7 @@ public class Graph {
         return visible;
     }
     
-    public void iterateToCreateEdges() throws GeometryException, OctNodeException, GraphException, GraphEdgeException{
+    public void iterateToCreateEdges() throws GeometryException, OctNodeException, GraphException, GraphEdgeException,OctreeException{
         for(int i=0;i<nodes.size();i++){
             for(int j=i+1;j<nodes.size();j++){
                 //create ray and call octree code here
@@ -88,6 +89,8 @@ public class Graph {
                         break;
                     case 2:
                         //arkoudia here
+                        if(surface.getSignForPointInSpace(nodes.get(i).getPoint().midpointFromPoint(nodes.get(j).getPoint())))
+                            visible=true;
                         break;
                     case 3:
                         visible=false;
