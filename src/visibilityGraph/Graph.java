@@ -93,7 +93,7 @@ public class Graph {
                         visible=false;
                         break;
                     default:
-                        throw new GraphException("Default switch case on clusers");
+                        throw new GraphException("Default switch case on clusters");
                 }
                 if(visible)
                     edges.add(new GraphEdge(i, j, nodes.get(i).getPoint().minkowskiDistanceFrom(nodes.get(j).getPoint(), 2)));
