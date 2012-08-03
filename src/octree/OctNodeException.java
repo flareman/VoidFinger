@@ -12,6 +12,10 @@ class InvalidElementIDOctNodeException extends OctNodeException {
     public InvalidElementIDOctNodeException() { super("Invalid octree element ID requested."); }
 }
 
+class InvalidArgumentOctNodeException extends OctNodeException {
+    public InvalidArgumentOctNodeException() { super("Invalid argument passed to OctNode member method."); }
+}
+
 class UnrecognizedOctNodeTypeException extends OctNodeException {
     public UnrecognizedOctNodeTypeException() { super("Unrecognized OctNode type."); }
 }

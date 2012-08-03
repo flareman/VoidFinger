@@ -11,3 +11,7 @@ class InvalidSOGFileSyntaxOctreeException extends OctreeException {
 class InvalidCreationParametersOctreeException extends OctreeException {
     public InvalidCreationParametersOctreeException() { super("Invalid parameters of octree creation."); }
 }
+
+class InvalidMethodArgumentOctreeException extends OctreeException {
+    public InvalidMethodArgumentOctreeException() { super("Invalid arguments passed to octree method."); }
+}

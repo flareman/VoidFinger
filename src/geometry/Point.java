@@ -47,7 +47,7 @@ public class Point {
         if (p.getDimensions() != this.dimensions) throw new GeometryException("Point dimensions not matching");
         Float sum = 0.0f;
         for (int i = 0; i < this.dimensions; i++)
-            sum += new Float(Math.pow(p.getCoords()[i].doubleValue() - this.coords[i].doubleValue(), norm));
+            sum += new Float(Math.pow(Math.abs(p.getCoords()[i].doubleValue() - this.coords[i].doubleValue()), norm));
         return new Float(Math.pow(sum, 1/norm));
     }
     
@@ -70,6 +70,14 @@ public class Point {
     }
     
     public Integer getDimensions() { return this.dimensions; }
+    
+    public Point midpointFromPoint(Point p) throws GeometryException {
+        if (p.getDimensions() != this.getDimensions()) throw new GeometryException("Midpoint can be calculated only for same-dimensionality points");
+        Float[] temp = new Float[this.coords.length];
+        for (int i = 0; i < this.coords.length; i++)
+            temp[i] = (this.coords[i] + p.getCoordinate(i)) / 2;
+        return new Point(temp);
+    }
     
     public Point transposedPoint(Float[] transpositionMatrix) throws GeometryException {
         if (transpositionMatrix.length != this.dimensions) throw new GeometryException("Point is "+this.dimensions+"-dimensional, matrix is "+transpositionMatrix.length+"-dimensional");

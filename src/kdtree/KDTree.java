@@ -56,9 +56,6 @@ public class KDTree {
         } catch (KDTreeCellException kdtce) {
             this.root = null;
             kdtce.printStackTrace();
-        } catch (OctNodeException one) {
-            this.root = null;
-            one.printStackTrace();
         }
     }
     

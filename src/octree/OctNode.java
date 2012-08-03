@@ -98,6 +98,26 @@ public class OctNode {
         return this.signs[id];
     }
     
+    public Boolean getSignForPointInSpace(Point p) throws OctNodeException {
+        if (p.getDimensions() != this.getDimensions())
+            throw new InvalidArgumentOctNodeException();
+        try {
+            if (this.getBoundingBox().pointInBox(p) == false) return false;
+        } catch (GeometryException ge) { throw new InvalidArgumentOctNodeException(); }
+        switch (type) {
+             case OCTNODE_EMPTY:
+                return this.getSign();
+            case OCTNODE_INTERMEDIATE:
+                for (OctNode on: this.children)
+                    if (on.getSignForPointInSpace(p)) return true;
+                return false;
+            case OCTNODE_LEAF:
+                return this.getSign();
+            default:
+                throw new UnrecognizedOctNodeTypeException();
+        }
+    }
+    
     public ArrayList<OctNode> getChildren() throws OctNodeException {
         if (this.type != OCTNODE_INTERMEDIATE) throw new InvalidOctNodeTypeException();
         return this.children;
