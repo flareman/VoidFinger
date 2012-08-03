@@ -29,7 +29,20 @@ public class Octree {
     public Float getMinNodeLength() { return new Float(this.getLength()/Math.pow(2, this.depth)); }
     
     public Integer getDimensions() { return this.root.getDimensions(); }
-    public ArrayList<Point> getAllVertices() throws OctNodeException { return this.root.getAllVertices(); }
+    public ArrayList<Point> getAllVertices() throws OctreeException {
+        ArrayList<Point> result = null;
+        try {
+            result = this.root.getAllVertices();
+        } catch (OctNodeException one) {}
+        return result;
+    }
+    public Boolean getSignForPointInSpace(Point p) throws OctreeException {
+        Boolean result;
+        try {
+            result = this.root.getSignForPointInSpace(p);
+        } catch (OctNodeException one) { throw new InvalidMethodArgumentOctreeException();}
+        return result;
+    }
 
     static public Octree parseFromFile(String filename) throws FileNotFoundException, IOException, OctreeException, OctNodeException {
         // Open filename and read content to byte buffer
