@@ -29,7 +29,7 @@ public class Octree {
     public Float getMinNodeLength() { return new Float(this.getLength()/Math.pow(2, this.depth)); }
     
     public Integer getDimensions() { return this.root.getDimensions(); }
-    public ArrayList<Point> getAllVertices() throws OctreeException {
+    public ArrayList<Point> getAllVertices() {
         ArrayList<Point> result = null;
         try {
             result = this.root.getAllVertices();
