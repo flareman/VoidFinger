@@ -87,6 +87,14 @@ public class Point {
         return new Point(newCoords);
     }
     
+    public Point transposedPoint(Point p) throws GeometryException {
+        if (p.getDimensions() != this.dimensions) throw new GeometryException("Both points must have same dimensionality");
+        Float[] newCoords = Arrays.copyOf(this.coords, this.dimensions);
+        for (int i = 0; i < this.dimensions; i++)
+            newCoords[i] += p.getCoordinate(i);
+        return new Point(newCoords);
+    }
+
     public Point symmetricPoint() {
         Float[] newCoords = Arrays.copyOf(this.coords, this.dimensions);
         for (int i = 0; i < this.dimensions; i++)
@@ -108,4 +116,13 @@ public class Point {
         } catch (GeometryException ge) {}
         return result;
     }
+
+    public Point scaledPoint(Float[] scaleMatrix) throws GeometryException {
+        if (scaleMatrix.length != this.dimensions) throw new GeometryException("Scaling matrix must have same dimensionality as the point to be scaled");
+        Float[] newCoords = Arrays.copyOf(this.coords, this.dimensions);
+        for (int i = 0; i < this.dimensions; i++)
+            newCoords[i] *= scaleMatrix[i];
+        return new Point(newCoords);
+    }
 }
+
