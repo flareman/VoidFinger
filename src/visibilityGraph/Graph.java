@@ -79,7 +79,7 @@ public class Graph {
                 float D = surface.getMinNodeLength();
                 float distance;
                 for(int k=1;(k<projections.size() && clusterCount < 3);k++){
-                    distance = projections.get(i) - projections.get(i-1);
+                    distance = projections.get(k) - projections.get(k-1);
                     if(distance > (1.5f*D))
                         clusterCount++;
                 }
