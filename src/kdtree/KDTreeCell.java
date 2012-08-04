@@ -12,7 +12,7 @@ public class KDTreeCell {
     private Integer dimensions;
     private Integer depth;
     private Integer count = 0;
-    private Point sum;
+    private Point sum = null;
     private KDTreeCell[] children = null;
     private Point point = null;
     private BoundingBox cell;
@@ -82,7 +82,7 @@ public class KDTreeCell {
                 this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints, newMin, this.cell.getMaxPoint());
                 this.count = points.get(0).size();
                 try {
-                    this.sum = this.point.transposedPoint(this.children[0].getSum()).transposedPoint(this.children[1].getSum());
+                    this.sum = this.children[0].getSum().transposedPoint(this.children[1].getSum());
                 } catch (GeometryException ge) {}
             } else switch (points.get(0).size()) {
                 case 2:
@@ -106,7 +106,7 @@ public class KDTreeCell {
                     try {
                         newMax = new Point(leftNewMax);
                         newMin = new Point(rightNewMin);
-                        this.sum = points.get(0).get(0).transposedPoint(points.get(0).get(0));
+                        this.sum = points.get(0).get(0).transposedPoint(points.get(0).get(1));
                     } catch (GeometryException ge) {}
                     this.children = new KDTreeCell[2];
                     this.children[0] = new KDTreeCell(dimensions, depth+1, leftPoints, this.cell.getMinPoint(), newMax);
@@ -119,7 +119,9 @@ public class KDTreeCell {
                     this.sum = this.point;
                     break;
                 case 0:
-                    throw new KDTreeCellException();
+                    try {
+                        this.sum = Point.zeroPoint(this.dimensions);
+                    } catch (GeometryException ge) {}
             }
         } else {
             this.children = null;
@@ -128,6 +130,7 @@ public class KDTreeCell {
     }
 
     public Boolean isLeafNode() { if (this.children == null) return true; else return false; }
+    public Boolean isEmpty() { if (this.point == null) return true; else return false; }
     public BoundingBox getBoundingBox() { return this.cell; }
     public Point getCenter() { return this.cell.getCenter(); }
     public Point getPoint() { return this.point; }
