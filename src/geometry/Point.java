@@ -8,6 +8,13 @@ public class Point {
     static public Point VOLUME_ZERO = new Point(0.0f, 0.0f, 0.0f);
     private Float[] coords;
     private Integer dimensions;
+
+    static public Point zeroPoint(Integer dimensions) throws GeometryException {
+        if (dimensions <= 0) throw new GeometryException("Zero coordinate points must be constructed for positive count of dimensions");
+        Float[] temp = new Float[dimensions];
+        Arrays.fill(temp, 0.0f);
+        return new Point(temp);
+    }
     
     public Point(Float[] coords) throws GeometryException {
         if (coords == null || coords.length == 0) throw new GeometryException("Invalid point arguments passed to constructor");
