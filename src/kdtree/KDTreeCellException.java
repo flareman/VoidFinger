@@ -11,9 +11,21 @@ class KDTreeCellWrongCreationArgumentException extends KDTreeCellException {
     }
 }
 
+class KDTreeCellInvalidCellTypeException extends KDTreeCellException {
+    public KDTreeCellInvalidCellTypeException() {
+        super("Method called does not apply to given kd-tree cell type");
+    }
+}
+
 class KDTreeCellWrongPointCoordinatesException extends KDTreeCellException {
     public KDTreeCellWrongPointCoordinatesException() {
         super("The points of the kd-tree must have the same number of dimensions as the tree");
+    }
+}
+
+class KDTreeCellInvalidMethodArgumentException extends KDTreeCellException {
+    public KDTreeCellInvalidMethodArgumentException() {
+        super("Method called with invalid argument for kd-tree cell");
     }
 }
 

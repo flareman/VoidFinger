@@ -3,12 +3,12 @@ package kdtree;
 import geometry.Point;
 import java.util.ArrayList;
 import java.util.Collections;
-import octree.OctNodeException;
 import octree.Octree;
 
 public class KDTree {
     private Integer dimensions;
     private KDTreeCell root;
+    private ArrayList<Point> points = new ArrayList<Point>();
     
     // This implementation of the class is feature-complete for constructing a
     // kd-tree from octree data only; however, we have included a generic constructor
@@ -37,12 +37,12 @@ public class KDTree {
             // at each recursion step, while guaranteeing the creation of a quality, balanced
             // tree.
             ArrayList<ArrayList<Point>> pointArrays = new ArrayList<ArrayList<Point>>();
-            ArrayList<Point> points = octree.getAllVertices();
-            Collections.sort(points, new CoordinateComparator(0));
-            pointArrays.add(points);
+            this.points.addAll(octree.getAllVertices());
+            Collections.sort(this.points, new CoordinateComparator(0));
+            pointArrays.add(this.points);
             for (int i = 1; i < dimensions; i++) {
                 ArrayList<Point> temp = new ArrayList<Point>();
-                temp.addAll(points);
+                temp.addAll(this.points);
                 Collections.sort(temp, new CoordinateComparator(i));
                 pointArrays.add(temp);
             }
@@ -60,4 +60,6 @@ public class KDTree {
     }
     
     public Integer getMaxDepth() { return this.root.getMaxDepth(); }
+    public ArrayList<Point> getAllPoints() { return this.points; }
+    public KDTreeCell getRoot() { return this.root; }
 }

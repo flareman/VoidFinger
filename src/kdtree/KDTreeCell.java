@@ -8,6 +8,7 @@ import java.util.Iterator;
 
 public class KDTreeCell {
     private Integer splitDimension;
+    private Float split = 0.0f;
     private Integer dimensions;
     private Integer depth;
     private Integer count = 0;
@@ -15,7 +16,6 @@ public class KDTreeCell {
     private KDTreeCell[] children = null;
     private Point point = null;
     private BoundingBox cell;
-
 
     public KDTreeCell(Integer dimensions, Integer depth,
             ArrayList<ArrayList<Point>> points, Point min, Point max) throws KDTreeCellException {
@@ -43,10 +43,8 @@ public class KDTreeCell {
                         if (master.get(medianID-1).getCoordinate(this.splitDimension) >= master.get(medianID).getCoordinate(this.splitDimension)) medianID--;
                         else break;
                     }
+                    this.split = master.get(medianID).getCoordinate(this.splitDimension);
                 } catch (GeometryException ge) {throw new KDTreeCellWrongPointCoordinatesException(); }
-                Point median = master.get(medianID);
-                this.point = median;
-                master.remove(median);
                 for (int i = 0; i < this.dimensions; i++) {
                     ArrayList<Point> left = new ArrayList<Point>();
                     ArrayList<Point> right = new ArrayList<Point>();
@@ -59,16 +57,7 @@ public class KDTreeCell {
                             for (Iterator<Point> it = slave.iterator(); it.hasNext();) {
                                 Point v = it.next();
                                 Integer j = -1;
-                                Point foundMedian = null;
-                                while (++j < this.dimensions) {
-                                    if (v.getCoordinate(j) != median.getCoordinate(j)) continue;
-                                    if (j == this.dimensions-1)
-                                        foundMedian = v;
-                                }
-                                if (foundMedian != null) {
-                                    it.remove();
-                                    continue;
-                                } else if (v.getCoordinate(this.splitDimension) < median.getCoordinate(this.splitDimension))
+                                if (v.getCoordinate(this.splitDimension) < this.split)
                                     left.add(v);
                                 else right.add(v);
                             }
@@ -126,15 +115,11 @@ public class KDTreeCell {
                     break;
                 case 1:
                     this.point = points.get(0).get(0);
-                    this.children = null;
                     this.count = 1;
                     this.sum = this.point;
                     break;
                 case 0:
-                    this.children = null;
-                    this.point = null;
-                    this.sum = null;
-                    break;
+                    throw new KDTreeCellException();
             }
         } else {
             this.children = null;
@@ -142,11 +127,20 @@ public class KDTreeCell {
         }
     }
 
+    public Boolean isLeafNode() { if (this.children == null) return true; else return false; }
     public BoundingBox getBoundingBox() { return this.cell; }
     public Point getCenter() { return this.cell.getCenter(); }
+    public Point getPoint() { return this.point; }
     public Point getSum() { return this.sum; }
     public Point getWeightedSum() { return this.sum.scaledPoint(1.0f/this.count); }
     public Integer getPointCount() { return this.count; }
+    public KDTreeCell getChild(Integer id) throws KDTreeCellException {
+        if (this.children == null)
+            throw new KDTreeCellInvalidCellTypeException();
+        if (id < 0 || id > this.children.length)
+        throw new KDTreeCellInvalidMethodArgumentException();
+        return this.children[id];
+    }
     
     public Integer getMaxDepth() {
         if (this.children == null) return this.depth;
