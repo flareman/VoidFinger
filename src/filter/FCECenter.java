@@ -11,6 +11,9 @@ public class FCECenter {
     public FCECenter(Point p) throws FCEException {
         if (p == null) throw new FCEException("All cluster centers must be initialized with non-null points");
         this.center = p;
+        try {
+            this.sum = Point.zeroPoint(this.center.getDimensions());
+        } catch (GeometryException ge) {}
     }
     
     public Integer getDimensions() { return this.center.getDimensions(); }
