@@ -158,9 +158,11 @@ public class Graph {
     
     public ArrayList<Float> getShortestPathCosts(){
         ArrayList<Float> costs = new ArrayList<Float>();
-        
-        
-        
+        for(int i=0;i<nodes.size();i++){
+            for(int j=i+1;j<nodes.size();j++){
+                costs.add(calculateShortestPathDijkstra(i, j));
+            }
+        }    
         return costs;
     }
     
