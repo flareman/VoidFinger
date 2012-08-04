@@ -47,7 +47,7 @@ public class FilterClusterEngine {
     
     private void filter(KDTreeCell cell, ArrayList<FCECenter> candidates) {
         try {
-            if (cell.isLeafNode()) {
+            if (cell.isLeafNode() && !cell.isEmpty()) {
                 Collections.sort(candidates, new CenterDistanceComparator(cell.getPoint()));
                 candidates.get(0).addToCount(1);
                 candidates.get(0).addToSum(cell.getPoint());
