@@ -42,7 +42,7 @@ public class Graph {
     }
     
     private void recurseGetOctreeLeafs(Point origin, Vector ray, ArrayList<Point> visible, OctNode root) throws GeometryException, OctNodeException{
-        if(root.getBoundingBox().intersectWithRay(ray, origin, Boolean.FALSE)){
+        if(root.getBoundingBox().intersectWithRay(ray, origin, false)){
             if(root.getNodeType() == OctNode.OCTNODE_LEAF){
                 visible.add(root.getPoint());
             }
@@ -133,10 +133,10 @@ public class Graph {
                 Float weight = 0.0f;
                 for(GraphEdge e : this.edges){
                     Integer[] nds = e.getNodes();
-                    if(nds[0] == current && nds[1] == i)
+                    if ((nds[0] == current && nds[1] == i) ||
+                            (nds[1] == current && nds[0] == i))
                         weight = e.getWeight();
-                    if(nds[1] == current && nds[0] == i)
-                        weight = e.getWeight();
+                    else continue;
                 }
                 tentative[i] = tentative[current] + weight;
             }
