@@ -2,9 +2,12 @@ package voidfinger;
 
 import filter.FCEException;
 import filter.FilterClusterEngine;
+import histogram.Histogram;
+import histogram.HistogramException;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import kdtree.KDTree;
 import kdtree.KDTreeException;
 import octree.Octree;
@@ -17,6 +20,7 @@ public class VoidFinger {
     private KDTree kdtree = null;
     private FilterClusterEngine fce = null;
     private Graph graph = null;
+    private Histogram histogram = null;
     
     public VoidFinger(String filename) {
         try {
@@ -27,7 +31,7 @@ public class VoidFinger {
             System.out.println();
             this.molecule = Octree.parseFromFile(filename);
             this.kdtree = new KDTree(this.molecule);
-            this.fce = new FilterClusterEngine(this.kdtree, 50);
+            this.fce = new FilterClusterEngine(this.kdtree, 100);
             System.out.println("Filtering kd-tree...");
             this.fce.performClustering();
             this.graph = new Graph(this.fce.getClusterCenters(), this.molecule);
@@ -37,24 +41,25 @@ public class VoidFinger {
             System.out.print("Calculating inner distances... ");
             ArrayList<Float> result = this.graph.getInnerDistances();
             System.out.println("done");
+            System.out.print("Building histogram... ");
+            this.histogram = new Histogram(128, Collections.min(result), Collections.max(result));
+            this.histogram.addAll(result);
+            System.out.println("done");
+            this.histogram.printHistogram();
         } catch (FileNotFoundException fe) {
             System.out.println(fe.getLocalizedMessage());
-            this.molecule = null;
         } catch (IOException ioe) {
             System.out.println(ioe.getLocalizedMessage());
-            this.molecule = null;
         } catch (OctreeException oe) {
             System.out.println(oe.getLocalizedMessage());
-            this.molecule = null;
         } catch (KDTreeException kdte) {
             System.out.println(kdte.getLocalizedMessage());
-            this.molecule = null;
         } catch (FCEException fcee) {
             System.out.println(fcee.getLocalizedMessage());
-            this.molecule = null;
         } catch (GraphException gre) {
             System.out.println(gre.getLocalizedMessage());
-            this.molecule = null;
+        } catch (HistogramException he) {
+            System.out.println(he.getLocalizedMessage());
         }
     }
     
