@@ -1,16 +1,18 @@
 package voidfinger;
 
+import filter.FCEException;
+import filter.FilterClusterEngine;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import kdtree.KDTree;
 import kdtree.KDTreeException;
-import octree.OctNodeException;
 import octree.Octree;
 import octree.OctreeException;
 
 public class VoidFinger {
     private Octree molecule = null;
     private KDTree kdtree = null;
+    private FilterClusterEngine fce = null;
     
     public VoidFinger(String filename) {
         try {
@@ -21,6 +23,9 @@ public class VoidFinger {
             System.out.println();
             this.molecule = Octree.parseFromFile(filename);
             this.kdtree = new KDTree(this.molecule);
+            this.fce = new FilterClusterEngine(this.kdtree, 500);
+            this.fce.performClustering();
+            System.out.println("Calculated "+this.fce.getClusterCenters().size()+" centers.");
         } catch (FileNotFoundException fe) {
             System.out.println(fe.getLocalizedMessage());
             this.molecule = null;
@@ -33,8 +38,8 @@ public class VoidFinger {
         } catch (KDTreeException kdte) {
             System.out.println(kdte.getLocalizedMessage());
             this.molecule = null;
-        } catch (OctNodeException one) {
-            System.out.println(one.getLocalizedMessage());
+        } catch (FCEException fcee) {
+            System.out.println(fcee.getLocalizedMessage());
             this.molecule = null;
         }
     }

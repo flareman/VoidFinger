@@ -8,6 +8,13 @@ public class Point {
     static public Point VOLUME_ZERO = new Point(0.0f, 0.0f, 0.0f);
     private Float[] coords;
     private Integer dimensions;
+
+    static public Point zeroPoint(Integer dimensions) throws GeometryException {
+        if (dimensions <= 0) throw new GeometryException("Zero coordinate points must be constructed for positive count of dimensions");
+        Float[] temp = new Float[dimensions];
+        Arrays.fill(temp, 0.0f);
+        return new Point(temp);
+    }
     
     public Point(Float[] coords) throws GeometryException {
         if (coords == null || coords.length == 0) throw new GeometryException("Invalid point arguments passed to constructor");
@@ -48,7 +55,7 @@ public class Point {
         Float sum = 0.0f;
         for (int i = 0; i < this.dimensions; i++)
             sum += new Float(Math.pow(Math.abs(p.getCoords()[i].doubleValue() - this.coords[i].doubleValue()), norm));
-        return new Float(Math.pow(sum, 1/norm));
+        return new Float(Math.pow(sum, 1.0f/norm));
     }
     
     public Float euclideanDistanceFrom(Point p) throws GeometryException {
@@ -56,8 +63,9 @@ public class Point {
         if (p.getDimensions() != this.dimensions) throw new GeometryException("Point dimensions not matching");
         Float sum = 0.0f;
         for (int i = 0; i < ((this.dimensions > 3)?3:this.dimensions); i++)
-            sum += new Float(Math.pow(p.getCoords()[i].doubleValue() - this.coords[i].doubleValue(), 2));
-        return new Float(Math.sqrt(sum));
+            sum += (p.getCoordinate(i) - this.coords[i])*(p.getCoordinate(i) - this.coords[i]);
+        Float dist = new Float(Math.sqrt(sum));
+        return dist;
     }
 
     public Float[] getCoords() {
