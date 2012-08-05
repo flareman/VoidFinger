@@ -26,7 +26,7 @@ public class FilterClusterEngine {
         this.kdtree = tree;
         this.count = count;
     }
-    
+
     private void generateRandomCenters() {
         this.centers.clear();
         ArrayList<Integer> newCenterIDs = new ArrayList<Integer>();
@@ -77,16 +77,26 @@ public class FilterClusterEngine {
             }
         } catch (CenterDistanceComparatorException cdce) {
         } catch (GeometryException ge) {
-        } catch (KDTreeCellException ge) {
+        } catch (KDTreeCellException kdtce) {
         } catch (FCEException fcee) {}
     }
     
     private Boolean checkForConvergence(Integer cutoff) throws FCEException {
-        if (cutoff < 0) throw new FCEInvalidMethodArgumentException();
-        if (this.repetitions >= cutoff) return true;
-        else return false;
+        if (cutoff <= 0) throw new FCEInvalidMethodArgumentException();
+        if (cutoff > 0 && this.repetitions >= cutoff) return true;
+        for (FCECenter c: this.centers)
+            if (c.hasConverged(this.kdtree.getThreshold()))
+                return true;
+        return false;
     }
     
+    private Boolean checkForConvergence() {
+        for (FCECenter c: this.centers)
+            if (c.hasConverged(this.kdtree.getThreshold()))
+                return true;
+        return false;
+    }
+
     private void updateCenters() {
         for (FCECenter c: this.centers)
             c.updateCenter();
@@ -99,8 +109,19 @@ public class FilterClusterEngine {
             this.repetitions++;
             this.updateCenters();
         }
+        System.out.println("Completed clustering after "+this.repetitions+" passes");
     }
     
+    public void performClustering() {
+        this.generateRandomCenters();
+        while (!this.checkForConvergence()) {
+            this.filter(this.kdtree.getRoot(), this.centers);
+            this.repetitions++;
+            this.updateCenters();
+        }
+        System.out.println("Completed clustering after "+this.repetitions+" passes");
+    }
+
     public ArrayList<Point> getClusterCenters() {
         ArrayList<Point> result = new ArrayList<Point>();
         for (FCECenter c: this.centers)
