@@ -55,7 +55,7 @@ public class Point {
         Float sum = 0.0f;
         for (int i = 0; i < this.dimensions; i++)
             sum += new Float(Math.pow(Math.abs(p.getCoords()[i].doubleValue() - this.coords[i].doubleValue()), norm));
-        return new Float(Math.pow(sum, 1/norm));
+        return new Float(Math.pow(sum, 1.0f/norm));
     }
     
     public Float euclideanDistanceFrom(Point p) throws GeometryException {
