@@ -6,7 +6,6 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import kdtree.KDTree;
 import kdtree.KDTreeException;
-import octree.OctNodeException;
 import octree.Octree;
 import octree.OctreeException;
 
@@ -41,9 +40,6 @@ public class VoidFinger {
             this.molecule = null;
         } catch (FCEException fcee) {
             System.out.println(fcee.getLocalizedMessage());
-            this.molecule = null;
-        } catch (OctNodeException one) {
-            System.out.println(one.getLocalizedMessage());
             this.molecule = null;
         }
     }
