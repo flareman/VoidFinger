@@ -1,6 +1,5 @@
 package kdtree;
 
-import geometry.GeometryException;
 import geometry.Point;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -10,6 +9,7 @@ public class KDTree {
     private Integer dimensions;
     private KDTreeCell root;
     private ArrayList<Point> points = new ArrayList<Point>();
+    private Float length, threshold;
     
     // This implementation of the class is feature-complete for constructing a
     // kd-tree from octree data only; however, we have included a generic constructor
@@ -20,6 +20,8 @@ public class KDTree {
             throw new KDTreeInvalidCreationArgumentException();
         try {
             this.dimensions = dimensions;
+            this.length = 0.0f;
+            this.threshold = 0.0f;
             this.root = new KDTreeCell(dimensions, 0, null, Point.VOLUME_ZERO, new Point(100.0f, 100.0f, 100.0f));
             System.out.println("Created an empty kd-tree");
         } catch (KDTreeCellException kdtce) {
@@ -50,6 +52,8 @@ public class KDTree {
             Point min = octree.getOrigin();
             Point max = octree.getOriginAntipode();
             this.root = new KDTreeCell(dimensions, 0, pointArrays, min, max);
+            this.length = octree.getLength();
+            this.threshold = octree.getMinNodeLength();
             System.out.println("Created a kd-tree with depth " + this.getMaxDepth()+" and "+this.root.getPointCount()+" points.");
         } catch (CoordinateComparatorException cce) {
             this.root =  null;
@@ -63,4 +67,6 @@ public class KDTree {
     public Integer getMaxDepth() { return this.root.getMaxDepth(); }
     public ArrayList<Point> getAllPoints() { return this.points; }
     public KDTreeCell getRoot() { return this.root; }
+    public Float getLength() { return this.length; }
+    public Float getThreshold() { return this.threshold; }
 }
