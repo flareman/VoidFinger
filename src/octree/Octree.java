@@ -44,7 +44,7 @@ public class Octree {
         return result;
     }
 
-    static public Octree parseFromFile(String filename) throws FileNotFoundException, IOException, OctreeException, OctNodeException {
+    static public Octree parseFromFile(String filename) throws FileNotFoundException, IOException, OctreeException {
         // Open filename and read content to byte buffer
         File file = new File(filename);
         FileInputStream fis = new FileInputStream(file);
@@ -74,31 +74,33 @@ public class Octree {
         return new Octree(depth, newRoot);
     }
     
-    static private OctNode recurseParse(Integer currentDepth, ByteBuffer buffer, Float[] origin, Float length) throws IOException, OctNodeException, OctreeException {
+    static private OctNode recurseParse(Integer currentDepth, ByteBuffer buffer, Float[] origin, Float length) throws IOException, OctreeException {
         Byte type = buffer.get();
-        switch (type) {
-            case OctNode.OCTNODE_EMPTY:
-                Byte value = buffer.get();
-                return new OctNode(currentDepth, (value == 0)?false:true, origin, length);
-            case OctNode.OCTNODE_LEAF:
-                Byte signs = buffer.get();
-                Float coords[] = new Float[3];
-                coords[0] = buffer.getFloat();
-                coords[1] = buffer.getFloat();
-                coords[2] = buffer.getFloat();
-                return new OctNode(currentDepth, signs, coords, origin, length);
-            case OctNode.OCTNODE_INTERMEDIATE:
-                OctNode children[] = new OctNode[8];
-                for (int i = 0; i < 8; i++) {
-                    Float[] newOrigin = new Float[3];
-                    newOrigin[2] = origin[2]+((i%2==1)?length/2:0);
-                    newOrigin[1] = origin[1]+(((i>>1)%2==1)?length/2:0);
-                    newOrigin[0] = origin[0]+(((i>>2)%2==1)?length/2:0);
-                    children[i] = recurseParse(currentDepth+1, buffer, newOrigin, length/2);
-                }
-                return new OctNode(currentDepth, children, origin, length);
-            default:
-                throw new InvalidSOGFileSyntaxOctreeException();
-        }
+        try {
+            switch (type) {
+                case OctNode.OCTNODE_EMPTY:
+                    Byte value = buffer.get();
+                    return new OctNode(currentDepth, (value == 0)?false:true, origin, length);
+                case OctNode.OCTNODE_LEAF:
+                    Byte signs = buffer.get();
+                    Float coords[] = new Float[3];
+                    coords[0] = buffer.getFloat();
+                    coords[1] = buffer.getFloat();
+                    coords[2] = buffer.getFloat();
+                    return new OctNode(currentDepth, signs, coords, origin, length);
+                case OctNode.OCTNODE_INTERMEDIATE:
+                    OctNode children[] = new OctNode[8];
+                    for (int i = 0; i < 8; i++) {
+                        Float[] newOrigin = new Float[3];
+                        newOrigin[2] = origin[2]+((i%2==1)?length/2:0);
+                        newOrigin[1] = origin[1]+(((i>>1)%2==1)?length/2:0);
+                        newOrigin[0] = origin[0]+(((i>>2)%2==1)?length/2:0);
+                        children[i] = recurseParse(currentDepth+1, buffer, newOrigin, length/2);
+                    }
+                    return new OctNode(currentDepth, children, origin, length);
+                default:
+                    throw new InvalidSOGFileSyntaxOctreeException();
+            }
+        } catch (OctNodeException one) { throw new InvalidSOGFileSyntaxOctreeException(); }
     }
 }
