@@ -13,5 +13,5 @@ class EmptyNodeSetException extends GraphException{
 }
 
 class ZeroProjectedClustersException extends GraphException{
-    public ZeroProjectedClustersException(){super("No octree leaf nodes intersectwith ray.");}
+    public ZeroProjectedClustersException(){super("No octree leaf nodes intersect with ray.");}
 }
