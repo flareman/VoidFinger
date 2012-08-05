@@ -27,8 +27,8 @@ public class VoidFinger {
             System.out.println();
             this.molecule = Octree.parseFromFile(filename);
             this.kdtree = new KDTree(this.molecule);
-            this.fce = new FilterClusterEngine(this.kdtree, 500);
-            System.out.print("Filtering kd-tree...");
+            this.fce = new FilterClusterEngine(this.kdtree, 50);
+            System.out.println("Filtering kd-tree...");
             this.fce.performClustering();
             this.graph = new Graph(this.fce.getClusterCenters(), this.molecule);
             System.out.print("Building visibilty graph... ");
