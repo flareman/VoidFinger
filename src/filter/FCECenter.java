@@ -38,6 +38,7 @@ public class FCECenter {
         this.center = this.sum.scaledPoint(1.0f/this.count);
         try {
             this.sum = Point.zeroPoint(this.center.getDimensions());
+            this.count = 0;
         } catch (GeometryException ge) {}
     }
 }
