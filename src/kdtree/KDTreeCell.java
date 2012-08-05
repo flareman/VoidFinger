@@ -82,7 +82,10 @@ public class KDTreeCell {
                 this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints, newMin, this.cell.getMaxPoint());
                 this.count = points.get(0).size();
                 try {
-                    this.sum = this.children[0].getSum().transposedPoint(this.children[1].getSum());
+                    this.sum = this.children[0].getSum();
+                    if (this.sum != null)
+                        this.sum = this.sum.transposedPoint(this.children[1].getSum());
+                    else this.sum = this.children[1].getSum();
                 } catch (GeometryException ge) {}
             } else switch (points.get(0).size()) {
                 case 2:
@@ -118,10 +121,7 @@ public class KDTreeCell {
                     this.count = 1;
                     this.sum = this.point;
                     break;
-                case 0:
-                    try {
-                        this.sum = Point.zeroPoint(this.dimensions);
-                    } catch (GeometryException ge) {}
+                case 0: break;
             }
         } else {
             this.children = null;
