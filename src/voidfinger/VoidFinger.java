@@ -25,7 +25,7 @@ public class VoidFinger {
             this.molecule = Octree.parseFromFile(filename);
             this.kdtree = new KDTree(this.molecule);
             this.fce = new FilterClusterEngine(this.kdtree, 500);
-            this.fce.performClustering(30);
+            this.fce.performClustering();
             System.out.println("Calculated "+this.fce.getClusterCenters().size()+" centers.");
         } catch (FileNotFoundException fe) {
             System.out.println(fe.getLocalizedMessage());
