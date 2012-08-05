@@ -63,8 +63,9 @@ public class Point {
         if (p.getDimensions() != this.dimensions) throw new GeometryException("Point dimensions not matching");
         Float sum = 0.0f;
         for (int i = 0; i < ((this.dimensions > 3)?3:this.dimensions); i++)
-            sum += new Float(Math.pow(p.getCoords()[i].doubleValue() - this.coords[i].doubleValue(), 2));
-        return new Float(Math.sqrt(sum));
+            sum += (p.getCoordinate(i) - this.coords[i])*(p.getCoordinate(i) - this.coords[i]);
+        Float dist = new Float(Math.sqrt(sum));
+        return dist;
     }
 
     public Float[] getCoords() {
