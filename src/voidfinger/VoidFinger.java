@@ -34,7 +34,7 @@ public class VoidFinger {
             this.fce = new FilterClusterEngine(this.kdtree, 100);
             System.out.println("Filtering kd-tree...");
             this.fce.performClustering();
-            this.graph = new Graph(this.fce.getClusterCenters(), this.molecule);
+            this.graph = new Graph(this.fce.getClusterCenters(), this.molecule,4);
             System.out.print("Building visibilty graph... ");
             this.graph.buildVisibilityGraph();
             System.out.println("done");
@@ -60,6 +60,9 @@ public class VoidFinger {
             System.out.println(gre.getLocalizedMessage());
         } catch (HistogramException he) {
             System.out.println(he.getLocalizedMessage());
+        }
+        catch (InterruptedException ie){
+            System.out.println(ie.getLocalizedMessage());
         }
     }
     

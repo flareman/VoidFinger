@@ -12,10 +12,12 @@ import octree.OctreeException;
 
 public class Graph {
     private ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
-    private ArrayList<GraphEdge> edges = new ArrayList<GraphEdge>();
+    public ArrayList<GraphEdge> edges = new ArrayList<GraphEdge>();
     private Octree surface;
+    private int numOfThreads;
+    public ArrayList<Float> costs = new ArrayList<Float>();
     
-    public Graph(ArrayList<Point> nds, Octree tree) throws GraphException {
+    public Graph(ArrayList<Point> nds, Octree tree,int threads) throws GraphException {
         if (nds.isEmpty())
             throw new EmptyNodeSetGraphException();
         if (nds.get(0).getDimensions() != tree.getDimensions())
@@ -24,8 +26,10 @@ public class Graph {
             nodes.add(new GraphNode(p));
         }
         surface = tree;
+        numOfThreads = threads;
     }
     
+    public int getNodeCount(){return this.nodes.size();}
     public int getDimensions() { return this.surface.getDimensions(); }
     public GraphNode getNode(int x) { return nodes.get(x); }
     public GraphEdge getEdge(int x){ return edges.get(x); }
@@ -106,7 +110,7 @@ public class Graph {
         return neighbors;
     }
     
-    private Float calculateInnerDistanceForNodes(int start, int end) {
+    public Float calculateInnerDistanceForNodes(int start, int end) {
         Float[] tentative = new Float[this.nodes.size()];
         tentative[start] = 0.0f;
         for (int i = 0; i < nodes.size(); i++)
@@ -144,11 +148,15 @@ public class Graph {
         return tentative[end];
     }
     
-    public ArrayList<Float> getInnerDistances() {
-        ArrayList<Float> costs = new ArrayList<Float>();
-        for (int i = 0; i < nodes.size(); i++)
-            for (int j = i+1; j < nodes.size(); j++)
-                costs.add(calculateInnerDistanceForNodes(i, j));
+    public ArrayList<Float> getInnerDistances() throws InterruptedException{
+        DijkstraThread[] workers = new DijkstraThread[numOfThreads];
+        for(int i=0;i<this.numOfThreads;i++){
+            workers[i] = new DijkstraThread(numOfThreads, i, this);
+            workers[i].start();
+        }
+        for(int i=0;i<this.numOfThreads;i++){
+            workers[i].join();
+        }
         return costs;
     }
     
