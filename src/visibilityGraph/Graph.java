@@ -53,10 +53,8 @@ public class Graph {
         return result;
     }
     
-    public void buildVisibilityGraph() {
-        for (int i = 0; i < this.nodes.size(); i++) {
-            for (int j = i+1; j < this.nodes.size(); j++) {
-                ArrayList<Float> projections = new ArrayList<Float>();
+    public GraphEdge createEdgeForVisible(int i,int j){
+        ArrayList<Float> projections = new ArrayList<Float>();
                 try {
                     Vector ray = new Vector(this.nodes.get(i).getPoint(), this.nodes.get(j).getPoint());
                     ArrayList<Point> visibleList = getOctreeLeafs(this.nodes.get(i).getPoint(), ray);
@@ -88,12 +86,24 @@ public class Graph {
                     }
 
                     if (visible)
-                        this.edges.add(new GraphEdge(i, j, this.nodes.get(i).getPoint().minkowskiDistanceFrom(this.nodes.get(j).getPoint(), 2)));
+                        return new GraphEdge(i, j, this.nodes.get(i).getPoint().minkowskiDistanceFrom(this.nodes.get(j).getPoint(), 2));
                 } catch (GeometryException ge) {
                 } catch (GraphException gre) {
                 } catch (OctreeException oe) {
                 }
-            }
+                finally{
+                    return null;
+                }
+    }
+    
+    public void buildVisibilityGraph() throws InterruptedException{
+        VgraphCreationThread[] workers = new VgraphCreationThread[numOfThreads];
+        for(int i=0;i<this.numOfThreads;i++){
+            workers[i] = new VgraphCreationThread(numOfThreads, i, this);
+            workers[i].start();
+        }
+        for(int i=0;i<this.numOfThreads;i++){
+            workers[i].join();
         }
     }
     

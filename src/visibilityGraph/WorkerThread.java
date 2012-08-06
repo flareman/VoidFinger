@@ -27,7 +27,17 @@ class VgraphCreationThread extends WorkerThread{
     @Override
     public void run(){
         ArrayList<GraphEdge> localEdges = new ArrayList<GraphEdge>();
-        
+        for(int i=threadID;i<vGraph.getNodeCount();i+=numOfThreads){
+            for(int j=i+1;j<vGraph.getNodeCount();j+=numOfThreads){
+                GraphEdge edge = vGraph.createEdgeForVisible(i, j);
+                if(edge != null)
+                    localEdges.add(edge);
+            }
+            Object mutex = new Object();
+            synchronized(mutex){
+                Collections.copy(vGraph.edges, localEdges);
+            }
+        }
     }
     
     
