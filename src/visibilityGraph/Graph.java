@@ -58,7 +58,7 @@ public class Graph {
                 try {
                     Vector ray = new Vector(this.nodes.get(i).getPoint(), this.nodes.get(j).getPoint());
                     ArrayList<Point> visibleList = getOctreeLeafs(this.nodes.get(i).getPoint(), ray);
-                    for(Point p : visibleList){
+                    for (Point p: visibleList) {
                         Vector v = new Vector(p);
                         projections.add(ray.getProjection(v));
                     }
@@ -98,13 +98,12 @@ public class Graph {
     
     public void buildVisibilityGraph() throws InterruptedException{
         VgraphCreationThread[] workers = new VgraphCreationThread[numOfThreads];
-        for(int i=0;i<this.numOfThreads;i++){
+        for (int i = 0; i < this.numOfThreads; i++) {
             workers[i] = new VgraphCreationThread(numOfThreads, i, this);
             workers[i].start();
         }
-        for(int i=0;i<this.numOfThreads;i++){
+        for (int i = 0; i < this.numOfThreads; i++)
             workers[i].join();
-        }
     }
     
     private ArrayList<Integer> getNeighbors(int node) {
@@ -160,13 +159,12 @@ public class Graph {
     
     public ArrayList<Float> getInnerDistances() throws InterruptedException{
         DijkstraThread[] workers = new DijkstraThread[numOfThreads];
-        for(int i=0;i<this.numOfThreads;i++){
+        for (int i = 0; i < this.numOfThreads; i++) {
             workers[i] = new DijkstraThread(numOfThreads, i, this);
             workers[i].start();
         }
-        for(int i=0;i<this.numOfThreads;i++){
+        for (int i = 0; i < this.numOfThreads; i++)
             workers[i].join();
-        }
         return costs;
     }
     
