@@ -24,7 +24,7 @@ class VgraphCreationThread extends WorkerThread {
         for (int i = this.threadID; i < this.vGraph.getNodeCount(); i += this.numOfThreads) {
             for (int j = i+1; j < this.vGraph.getNodeCount(); j++) {
                 GraphEdge edge = this.vGraph.createEdgeForVisible(i, j);
-                if(edge != null)
+                if (edge != null)
                     localEdges.add(edge);
             }
             try {
@@ -45,8 +45,8 @@ class DijkstraThread extends WorkerThread {
                 localCosts.add(this.vGraph.calculateInnerDistanceForNodes(i, j));
             }
         }
-            try {
-                this.vGraph.addCosts(localCosts);
-            } catch (GraphException gre) {}
+        try {
+            this.vGraph.addCosts(localCosts);
+        } catch (GraphException gre) {}
     }
 }
