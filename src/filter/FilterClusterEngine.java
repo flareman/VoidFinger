@@ -102,24 +102,24 @@ public class FilterClusterEngine {
             c.updateCenter();
     }
     
-    public void performClustering(Integer cutoff) throws FCEException {
+    public int performClustering(Integer cutoff) throws FCEException {
         this.generateRandomCenters();
         while (!this.checkForConvergence(cutoff)) {
             this.filter(this.kdtree.getRoot(), this.centers);
             this.repetitions++;
             this.updateCenters();
         }
-        System.out.println("Completed clustering after "+this.repetitions+" passes");
+        return this.repetitions;
     }
     
-    public void performClustering() {
+    public int performClustering() {
         this.generateRandomCenters();
         while (!this.checkForConvergence()) {
             this.filter(this.kdtree.getRoot(), this.centers);
             this.repetitions++;
             this.updateCenters();
         }
-        System.out.println("Completed clustering after "+this.repetitions+" passes");
+        return this.repetitions;
     }
 
     public ArrayList<Point> getClusterCenters() {

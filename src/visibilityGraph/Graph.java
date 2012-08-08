@@ -54,7 +54,7 @@ public class Graph {
         return result;
     }
     
-    public GraphEdge createEdgeForVisible(int i,int j){
+    public GraphEdge createEdgeForVisible(int i, int j) {
         ArrayList<Float> projections = new ArrayList<Float>();
         try {
             Vector ray = new Vector(this.nodes.get(i).getPoint(), this.nodes.get(j).getPoint());
@@ -64,8 +64,7 @@ public class Graph {
                 projections.add(ray.getProjection(v));
             }
         } catch (GeometryException ge) {}
-        if (projections.isEmpty())
-            new ZeroProjectedClustersGraphException().printStackTrace();
+        if (projections.isEmpty()) return null;
         Collections.sort(projections);
         Boolean visible = false;
         int clusterCount = 1;
@@ -96,14 +95,16 @@ public class Graph {
         return null;
     }
     
-    public void buildVisibilityGraph() throws InterruptedException{
+    public void buildVisibilityGraph() {
         VgraphCreationThread[] workers = new VgraphCreationThread[numOfThreads];
         for (int i = 0; i < this.numOfThreads; i++) {
             workers[i] = new VgraphCreationThread(numOfThreads, i, this);
             workers[i].start();
         }
         for (int i = 0; i < this.numOfThreads; i++)
-            workers[i].join();
+            try {
+                workers[i].join();
+            } catch (InterruptedException ie) {}
     }
     
     private ArrayList<Integer> getNeighbors(int node) {
@@ -152,19 +153,22 @@ public class Graph {
                     next = i;
                 }
             if (next == -1) break;
+            if (minDist == Float.POSITIVE_INFINITY) break;
             current = next;
         }
         return tentative[end];
     }
     
-    public ArrayList<Float> getInnerDistances() throws InterruptedException{
+    public ArrayList<Float> getInnerDistances() {
         DijkstraThread[] workers = new DijkstraThread[numOfThreads];
         for (int i = 0; i < this.numOfThreads; i++) {
             workers[i] = new DijkstraThread(numOfThreads, i, this);
             workers[i].start();
         }
         for (int i = 0; i < this.numOfThreads; i++)
-            workers[i].join();
+            try {
+                workers[i].join();
+            } catch (InterruptedException ie) {}
         return this.costs;
     }
     

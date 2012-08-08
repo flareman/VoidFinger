@@ -47,66 +47,31 @@ public class BoundingBox {
             throw new GeometryException("Ray vector and origin dimensionality must match and be at least 3");
         if (infinite) return (this.intersectWithRay(r, p, false) || this.intersectWithRay(r.inverseVector(), p, false));
 
-        Float t1, t2, tmp, tnear, tfar, invDir, invMag, dirx, diry, dirz;
-	Float dirLen = r.getMeasure();
-	if (dirLen == 0.0)
-	    return this.pointInBox(p);
-	invMag = 1.0f/dirLen;
-	dirx = r.getCoordinate(0)*invMag;
-	diry = r.getCoordinate(1)*invMag;
-	dirz = r.getCoordinate(2)*invMag;
-
-	tnear = -Float.MAX_VALUE;
-	tfar = Float.MAX_VALUE;
-
-	if (dirx == 0.0)
-            if (p.getCoordinate(0) < this.min.getCoordinate(0) || p.getCoordinate(0) > this.max.getCoordinate(0))
-                return false;
-	else {
-	    invDir = 1.0f/dirx;
-	    t1 = (this.min.getCoordinate(0)-p.getCoordinate(0))*invDir;
-	    t2 = (this.max.getCoordinate(0)-p.getCoordinate(0))*invDir;
-            tfar = Math.max(t1, t2);
-            tnear = Math.min(t1, t2);
-	    if (tfar < 0.0f)
-                return false;
-	}
-
-	if (diry == 0.0)
-	    if (p.getCoordinate(1) < this.min.getCoordinate(1) || p.getCoordinate(1) > this.max.getCoordinate(1))
-                return false;
-	else {
-	    invDir = 1.0f/diry;
-	    t1 = (this.min.getCoordinate(1)-p.getCoordinate(1))*invDir;
-	    t2 = (this.max.getCoordinate(1)-p.getCoordinate(1))*invDir;
-            tmp = Math.min(t1, t2);
-            t1 = tmp;
-            t2 = Math.max(t1, t2);
-	    if (t1 > tnear) tnear = t1;
-	    if (t2 < tfar) tfar  = t2;
-
-	    if( (tfar < 0.0) || (tnear > tfar))
-			return false;
-	}
-
-	if (dirz == 0.0) 
-	    if (p.getCoordinate(2) < this.min.getCoordinate(2) || p.getCoordinate(2) > this.max.getCoordinate(2))
-                return false;
-	else {
-	    invDir = 1.0f/dirz;
-	    t1 = (this.min.getCoordinate(2)-p.getCoordinate(2))*invDir;
-	    t2 = (this.max.getCoordinate(2)-p.getCoordinate(2))*invDir;
-            tmp = Math.min(t1, t2);
-            t1 = tmp;
-            t2 = Math.max(t1, t2);
-	    if (t1 > tnear) tnear = t1;
-	    if (t2 < tfar) tfar  = t2;
-
-	    if ((tfar < 0.0) || (tnear > tfar))
-                return false;
-	}
-
-	return true;
+        Float tnear = Float.NEGATIVE_INFINITY;
+        Float tfar = Float.POSITIVE_INFINITY;
+        Float t1, t2;
+        
+        for (int i = 0; i < ((this.getDimensions() > 3)?3:this.getDimensions()); i++) {
+            if (r.getCoordinate(i) == 0) {
+                if (p.getCoordinate(i) < this.min.getCoordinate(i) ||
+                        p.getCoordinate(i) > this.max.getCoordinate(i))
+                    return false;
+            } else {
+                t1 = (this.min.getCoordinate(i) - p.getCoordinate(i)) / r.getCoordinate(i);
+                t2 = (this.max.getCoordinate(i) - p.getCoordinate(i)) / r.getCoordinate(i);
+                if (t1 > t2) {
+                    Float temp = t1;
+                    t1 = t2;
+                    t2 = temp;
+                }
+                if (t1 > tnear) tnear = t1;
+                if (t2 < tfar) tfar = t2;
+                if (tfar < 0) return false;
+                if (tnear > tfar) return false;
+            }
+        }
+        
+        return true;
     }
     
     public int intersectWithPlane(Plane pl) throws GeometryException {

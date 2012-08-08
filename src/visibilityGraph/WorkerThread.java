@@ -42,7 +42,8 @@ class DijkstraThread extends WorkerThread {
         ArrayList<Float> localCosts = new ArrayList<Float>();
         for (int i = this.threadID; i < this.vGraph.getNodeCount(); i += this.numOfThreads) {
             for (int j = i+1; j < this.vGraph.getNodeCount(); j++) {
-                localCosts.add(this.vGraph.calculateInnerDistanceForNodes(i, j));
+                Float f = this.vGraph.calculateInnerDistanceForNodes(i, j);
+                if (!f.isInfinite()) localCosts.add(f);
             }
         }
         try {

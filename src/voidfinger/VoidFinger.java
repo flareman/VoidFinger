@@ -31,9 +31,10 @@ public class VoidFinger {
             System.out.println();
             this.molecule = Octree.parseFromFile(filename);
             this.kdtree = new KDTree(this.molecule);
-            this.fce = new FilterClusterEngine(this.kdtree, 50);
-            System.out.println("Filtering kd-tree...");
-            this.fce.performClustering();
+            this.fce = new FilterClusterEngine(this.kdtree, 500);
+            System.out.print("Filtering kd-tree... ");
+            int passes = this.fce.performClustering();
+            System.out.println("done after "+passes+" passes");
             this.graph = new Graph(this.fce.getClusterCenters(), this.molecule, 4);
             System.out.print("Building visibilty graph... ");
             this.graph.buildVisibilityGraph();
@@ -41,11 +42,12 @@ public class VoidFinger {
             System.out.print("Calculating inner distances... ");
             ArrayList<Float> result = this.graph.getInnerDistances();
             System.out.println("done");
+            System.out.println(result.size()+" inner distances calculated.");
             System.out.print("Building histogram... ");
             this.histogram = new Histogram(128, Collections.min(result), Collections.max(result));
             this.histogram.addAll(result);
             System.out.println("done");
-            this.histogram.printHistogram();
+//             this.histogram.printHistogram();
         } catch (FileNotFoundException fe) {
             System.out.println(fe.getLocalizedMessage());
         } catch (IOException ioe) {
@@ -60,9 +62,6 @@ public class VoidFinger {
             System.out.println(gre.getLocalizedMessage());
         } catch (HistogramException he) {
             System.out.println(he.getLocalizedMessage());
-        }
-        catch (InterruptedException ie){
-            System.out.println(ie.getLocalizedMessage());
         }
     }
     
