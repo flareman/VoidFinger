@@ -31,10 +31,10 @@ public class VoidFinger {
             System.out.println();
             this.molecule = Octree.parseFromFile(filename);
             this.kdtree = new KDTree(this.molecule);
-            this.fce = new FilterClusterEngine(this.kdtree, 100);
+            this.fce = new FilterClusterEngine(this.kdtree, 50);
             System.out.println("Filtering kd-tree...");
             this.fce.performClustering();
-            this.graph = new Graph(this.fce.getClusterCenters(), this.molecule,4);
+            this.graph = new Graph(this.fce.getClusterCenters(), this.molecule, 4);
             System.out.print("Building visibilty graph... ");
             this.graph.buildVisibilityGraph();
             System.out.println("done");

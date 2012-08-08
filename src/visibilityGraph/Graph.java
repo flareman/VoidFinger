@@ -15,7 +15,8 @@ public class Graph {
     public ArrayList<GraphEdge> edges = new ArrayList<GraphEdge>();
     private Octree surface;
     private int numOfThreads;
-    public ArrayList<Float> costs = new ArrayList<Float>();
+    private ArrayList<Float> costs = new ArrayList<Float>();
+    private final Object mutex = new Object();
     
     public Graph(ArrayList<Point> nds, Octree tree,int threads) throws GraphException {
         if (nds.isEmpty())
@@ -55,45 +56,44 @@ public class Graph {
     
     public GraphEdge createEdgeForVisible(int i,int j){
         ArrayList<Float> projections = new ArrayList<Float>();
-                try {
-                    Vector ray = new Vector(this.nodes.get(i).getPoint(), this.nodes.get(j).getPoint());
-                    ArrayList<Point> visibleList = getOctreeLeafs(this.nodes.get(i).getPoint(), ray);
-                    for (Point p: visibleList) {
-                        Vector v = new Vector(p);
-                        projections.add(ray.getProjection(v));
-                    }
-                } catch (GeometryException ge) {}
-                if (projections.isEmpty())
-                    new ZeroProjectedClustersGraphException().printStackTrace();
-                Collections.sort(projections);
-                Boolean visible = false;
-                int clusterCount = 1;
-                float D = this.surface.getMinNodeLength();
-                float distance;
-                for (int k = 1; k < projections.size() && clusterCount < 3; k++) {
-                    distance = projections.get(k) - projections.get(k-1);
-                    if (distance > 1.5f*D)
-                        clusterCount++;
-                }
-                try {
-                    switch (clusterCount) {
-                        case 1: visible = true; break;
-                        case 2:
-                            visible = (this.surface.getSignForPointInSpace(this.nodes.get(i).getPoint().midpointFromPoint(this.nodes.get(j).getPoint())));
-                            break;
-                        case 3: visible = false; break;
-                        default: break;
-                    }
+        try {
+            Vector ray = new Vector(this.nodes.get(i).getPoint(), this.nodes.get(j).getPoint());
+            ArrayList<Point> visibleList = getOctreeLeafs(this.nodes.get(i).getPoint(), ray);
+            for (Point p: visibleList) {
+                Vector v = new Vector(p);
+                projections.add(ray.getProjection(v));
+            }
+        } catch (GeometryException ge) {}
+        if (projections.isEmpty())
+            new ZeroProjectedClustersGraphException().printStackTrace();
+        Collections.sort(projections);
+        Boolean visible = false;
+        int clusterCount = 1;
+        float D = this.surface.getMinNodeLength();
+        float distance;
+        for (int k = 1; k < projections.size() && clusterCount < 3; k++) {
+            distance = projections.get(k) - projections.get(k-1);
+            if (distance > 1.5f*D)
+                clusterCount++;
+        }
+        try {
+            switch (clusterCount) {
+                case 1: visible = true; break;
+                case 2:
+                    visible = (this.surface.getSignForPointInSpace(this.nodes.get(i).getPoint().midpointFromPoint(this.nodes.get(j).getPoint())));
+                    break;
+                case 3: visible = false; break;
+                default: break;
+            }
 
-                    if (visible)
-                        return new GraphEdge(i, j, this.nodes.get(i).getPoint().minkowskiDistanceFrom(this.nodes.get(j).getPoint(), 2));
-                } catch (GeometryException ge) {
-                } catch (GraphException gre) {
-                } catch (OctreeException oe) {
-                }
-                finally{
-                    return null;
-                }
+            if (visible)
+                return new GraphEdge(i, j, this.nodes.get(i).getPoint().minkowskiDistanceFrom(this.nodes.get(j).getPoint(), 2));
+            else return null;
+        } catch (GeometryException ge) {
+        } catch (GraphException gre) {
+        } catch (OctreeException oe) {
+        }
+        return null;
     }
     
     public void buildVisibilityGraph() throws InterruptedException{
@@ -165,7 +165,22 @@ public class Graph {
         }
         for (int i = 0; i < this.numOfThreads; i++)
             workers[i].join();
-        return costs;
+        return this.costs;
     }
     
+    public void addEdges(ArrayList<GraphEdge> e) throws GraphException {
+        if (e == null)
+            throw new InvalidMethodArgumentGraphException();
+        synchronized(this.mutex) {
+            this.edges.addAll(e);
+        }
+    }
+
+    public void addCosts(ArrayList<Float> c) throws GraphException {
+        if (c == null)
+            throw new InvalidMethodArgumentGraphException();
+        synchronized(this.mutex) {
+            this.costs.addAll(c);
+        }
+    }
 }

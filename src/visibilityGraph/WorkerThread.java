@@ -6,7 +6,6 @@ public class WorkerThread extends Thread {
     protected int threadID;
     protected Graph vGraph;
     protected int numOfThreads;
-    final protected Object mutex = new Object();
     
     public WorkerThread (int threads, int ID, Graph graph) {
         threadID = ID;
@@ -28,9 +27,9 @@ class VgraphCreationThread extends WorkerThread {
                 if(edge != null)
                     localEdges.add(edge);
             }
-            synchronized(this.mutex) {
-                this.vGraph.edges.addAll(localEdges);
-            }
+            try {
+                this.vGraph.addEdges(localEdges);
+            } catch (GraphException gre) {}
         }
     }
 }
@@ -46,8 +45,8 @@ class DijkstraThread extends WorkerThread {
                 localCosts.add(this.vGraph.calculateInnerDistanceForNodes(i, j));
             }
         }
-        synchronized(this.mutex) {
-            this.vGraph.costs.addAll(localCosts);
-        }
+            try {
+                this.vGraph.addCosts(localCosts);
+            } catch (GraphException gre) {}
     }
 }

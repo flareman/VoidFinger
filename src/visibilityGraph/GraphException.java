@@ -19,3 +19,7 @@ class InvalidCreationArgumentDimensionsGraphException extends GraphException {
 class InvalidEdgeCreationArgumentsGraphException extends GraphException {
     public InvalidEdgeCreationArgumentsGraphException(String str) { super("Invalid argument passed to edge constructor: "+str); }
 }
+
+class InvalidMethodArgumentGraphException extends GraphException {
+    public InvalidMethodArgumentGraphException() { super("Invalid argument passed to visibility graph method"); }
+}
