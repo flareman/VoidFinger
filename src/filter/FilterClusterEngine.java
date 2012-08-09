@@ -85,7 +85,7 @@ public class FilterClusterEngine {
         if (cutoff <= 0) throw new FCEInvalidMethodArgumentException();
         if (cutoff > 0 && this.repetitions >= cutoff) return true;
         for (FCECenter c: this.centers)
-            if (c.hasConverged(this.kdtree.getThreshold()))
+            if (c.hasConverged(this.kdtree.getThreshold()/100.0f))
                 return true;
         return false;
     }
@@ -95,9 +95,9 @@ public class FilterClusterEngine {
         for (FCECenter c: this.centers) {
             if (c.hasConverged(this.kdtree.getThreshold()))
                 convergedCenters++;
+            if (convergedCenters >= this.centers.size() - 1) return true;
         }
-        if (convergedCenters == this.centers.size()) return true;
-        else return false;
+        return false;
     }
 
     private void updateCenters() {
