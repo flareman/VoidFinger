@@ -43,6 +43,14 @@ public class KDTreeCell {
                         if (master.get(medianID-1).getCoordinate(this.splitDimension) >= master.get(medianID).getCoordinate(this.splitDimension)) medianID--;
                         else break;
                     }
+                    if (medianID == 0) {
+                        Integer temp = 1;
+                        while (temp < master.size()) {
+                            if (master.get(temp).getCoordinate(this.splitDimension) > master.get(temp-1).getCoordinate(this.splitDimension)) break;
+                            else temp++;
+                        }
+                        if (temp < master.size()) medianID = temp;
+                    }
                     this.split = master.get(medianID).getCoordinate(this.splitDimension);
                 } catch (GeometryException ge) {throw new KDTreeCellWrongPointCoordinatesException(); }
                 for (int i = 0; i < this.dimensions; i++) {
@@ -56,7 +64,6 @@ public class KDTreeCell {
                         try {
                             for (Iterator<Point> it = slave.iterator(); it.hasNext();) {
                                 Point v = it.next();
-                                Integer j = -1;
                                 if (v.getCoordinate(this.splitDimension) < this.split)
                                     left.add(v);
                                 else right.add(v);
@@ -66,11 +73,32 @@ public class KDTreeCell {
                     leftPoints.add(left);
                     rightPoints.add(right);
                 }
+                if (leftPoints.get(0).isEmpty() && rightPoints.get(0).size() > 1) {
+                    Boolean identical = true;
+                    for (int i = 1; i < rightPoints.size(); i++) {
+                        try {
+                            for (int d = 0; d < this.dimensions; d++)
+                                if (rightPoints.get(0).get(0).getCoordinate(d).compareTo(rightPoints.get(0).get(i).getCoordinate(d)) != 0) {
+                                    identical = false;
+                                    break;
+                                }
+                        } catch (GeometryException ge) { continue; }
+                        if (identical == false) break;
+                    }
+                    if (identical) {
+                        Point unique = rightPoints.get(0).get(0);
+                        rightPoints.clear();
+                        for (int i = 0; i < this.dimensions; i++) {
+                            ArrayList<Point> temp = new ArrayList<Point>();
+                            temp.add(unique);
+                            rightPoints.add(temp);
+                        }
+                    }
+                }
                 Float[] leftNewMax = this.cell.getMaxPoint().getCoords();
                 Float[] rightNewMin = this.cell.getMinPoint().getCoords();
-                Integer newSplit = (depth + 1) % dimensions;
-                leftNewMax[newSplit] -= (leftNewMax[newSplit]-rightNewMin[newSplit])/2;
-                rightNewMin[newSplit] = leftNewMax[newSplit];
+                leftNewMax[this.splitDimension] = this.split;
+                rightNewMin[this.splitDimension] = this.split;
                 Point newMax = null;
                 Point newMin = null;
                 try {
@@ -80,11 +108,12 @@ public class KDTreeCell {
                 this.children = new KDTreeCell[2];
                 this.children[0] = new KDTreeCell(dimensions, depth+1, leftPoints, this.cell.getMinPoint(), newMax);
                 this.children[1] = new KDTreeCell(dimensions, depth+1, rightPoints, newMin, this.cell.getMaxPoint());
-                this.count = points.get(0).size();
+                this.count = this.children[0].count + this.children[1].count;
                 try {
                     this.sum = this.children[0].getSum();
                     if (this.sum != null)
-                        this.sum = this.sum.transposedPoint(this.children[1].getSum());
+                        if (this.children[1].getSum() != null)
+                            this.sum = this.sum.transposedPoint(this.children[1].getSum());
                     else this.sum = this.children[1].getSum();
                 } catch (GeometryException ge) {}
             } else switch (points.get(0).size()) {
@@ -101,9 +130,8 @@ public class KDTreeCell {
                     }
                     Float[] leftNewMax = this.cell.getMaxPoint().getCoords();
                     Float[] rightNewMin = this.cell.getMinPoint().getCoords();
-                    Integer newSplit = (depth + 1) % dimensions;
-                    leftNewMax[newSplit] -= (leftNewMax[newSplit]-rightNewMin[newSplit])/2;
-                    rightNewMin[newSplit] = leftNewMax[newSplit];
+                    leftNewMax[this.splitDimension] -= (leftNewMax[this.splitDimension] - rightNewMin[this.splitDimension])/2;
+                    rightNewMin[this.splitDimension] = leftNewMax[this.splitDimension];
                     Point newMax = null;
                     Point newMin = null;
                     try {

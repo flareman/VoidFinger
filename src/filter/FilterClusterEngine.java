@@ -91,10 +91,13 @@ public class FilterClusterEngine {
     }
     
     private Boolean checkForConvergence() {
-        for (FCECenter c: this.centers)
+        Integer convergedCenters = 0;
+        for (FCECenter c: this.centers) {
             if (c.hasConverged(this.kdtree.getThreshold()))
-                return true;
-        return false;
+                convergedCenters++;
+        }
+        if (convergedCenters == this.centers.size()) return true;
+        else return false;
     }
 
     private void updateCenters() {

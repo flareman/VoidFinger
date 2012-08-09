@@ -1,8 +1,10 @@
 package kdtree;
 
+import geometry.GeometryException;
 import geometry.Point;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.Iterator;
 import octree.Octree;
 
 public class KDTree {
@@ -54,7 +56,7 @@ public class KDTree {
             this.root = new KDTreeCell(dimensions, 0, pointArrays, min, max);
             this.length = octree.getLength();
             this.threshold = octree.getMinNodeLength();
-            System.out.println("Created a kd-tree with depth " + this.getMaxDepth()+" and "+this.root.getPointCount()+" points.");
+            System.out.println("Created a kd-tree with depth " + this.root.getMaxDepth()+" and "+this.root.getPointCount()+" points.");
         } catch (CoordinateComparatorException cce) {
             this.root =  null;
             cce.printStackTrace();

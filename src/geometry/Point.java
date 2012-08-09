@@ -3,6 +3,7 @@ package geometry;
 import java.util.Arrays;
 
 public class Point {
+    static public Float EPSILON = 0.00000001f;
     static public Point LINE_ZERO = new Point(0.0f);
     static public Point PLANE_ZERO = new Point(0.0f, 0.0f);
     static public Point VOLUME_ZERO = new Point(0.0f, 0.0f, 0.0f);
