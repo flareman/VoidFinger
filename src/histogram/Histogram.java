@@ -71,7 +71,7 @@ public class Histogram {
     }
     
     public void saveToFile(String filename) throws IOException {
-        PrintWriter out = new PrintWriter(new FileWriter("out.txt"));
+        PrintWriter out = new PrintWriter(new FileWriter(filename));
         out.println(this.count);
         out.println(this.min);
         out.println(this.max);
@@ -88,7 +88,7 @@ public class Histogram {
         if (c <= 0) throw new InvalidFileSyntaxHistogramException();
         if (m > x) throw new InvalidFileSyntaxHistogramException();
         Integer[] bins = new Integer[c];
-        String nextBin = "";
+        String nextBin;
         int i = 0;
         while ((nextBin = input.readLine()) != null) {
             bins[i] = Integer.parseInt(nextBin);

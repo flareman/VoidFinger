@@ -22,7 +22,7 @@ public class VoidFinger {
     private Graph graph = null;
     private Histogram histogram = null;
     
-    public VoidFinger(String filename) {
+    public VoidFinger(String filename, Integer centers, Integer threads) {
         try {
             System.out.println("Volumetric Inner Distance Fingerprinting Utility");
             System.out.println("(c) 2012 Spyridon Smparounis, George Papakyriakopoulos");
@@ -31,11 +31,11 @@ public class VoidFinger {
             System.out.println();
             this.molecule = Octree.parseFromFile(filename);
             this.kdtree = new KDTree(this.molecule);
-            this.fce = new FilterClusterEngine(this.kdtree, 500);
+            this.fce = new FilterClusterEngine(this.kdtree, centers);
             System.out.print("Filtering kd-tree... ");
             int passes = this.fce.performClustering();
             System.out.println("done after "+passes+" passes");
-            this.graph = new Graph(this.fce.getClusterCenters(), this.molecule, 4);
+            this.graph = new Graph(this.fce.getClusterCenters(), this.molecule, threads);
             System.out.print("Building visibilty graph... ");
             this.graph.buildVisibilityGraph();
             System.out.println("done");
@@ -47,7 +47,6 @@ public class VoidFinger {
             this.histogram = new Histogram(128, Collections.min(result), Collections.max(result));
             this.histogram.addAll(result);
             System.out.println("done");
-//             this.histogram.printHistogram();
         } catch (FileNotFoundException fe) {
             System.out.println(fe.getLocalizedMessage());
         } catch (IOException ioe) {
@@ -66,8 +65,14 @@ public class VoidFinger {
     }
     
     public Octree getMolecule() { return this.molecule; }
+    
+    public void saveHistogramToFile(String filename) {
+        try { this.histogram.saveToFile(filename);
+        } catch (IOException ioe) { System.out.println(ioe.getLocalizedMessage()); }
+    }
 
     public static void main(String[] args) {
-        VoidFinger instance = new VoidFinger(args[0]);
+        VoidFinger instance = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]));
+        instance.saveHistogramToFile(args[3]);
     }
 }
