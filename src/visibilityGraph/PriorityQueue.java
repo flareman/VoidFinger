@@ -9,6 +9,19 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
     private ArrayList<QueueNode> innerList = new ArrayList<QueueNode>();
     private ArrayList<Integer> nodeIDs = new ArrayList<Integer>();
     
+    public PriorityQueue(int startID, int capacity) {
+        super();
+        this.nodeIDs.ensureCapacity(capacity);
+        this.innerList.add(new QueueNode(0.0f, startID));
+        this.nodeIDs.set(startID, 0);
+        int add = 1;
+        for (int i = 0; i < capacity; i ++)
+            if (i != startID) {
+                this.innerList.add(new QueueNode(Float.POSITIVE_INFINITY, i));
+                this.nodeIDs.set(i, i+add);
+            } else add--;
+    }
+
     public PriorityQueue() { super(); }
     public void clear() { this.innerList.clear(); this.nodeIDs.clear(); }
     public int size() { return this.innerList.size(); }
@@ -117,7 +130,14 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
     }
     
     public Float getDistanceForNodeWithID(int id) {
+        if (id < 0 || id > this.nodeIDs.size()-1) throw new IllegalArgumentException();
         return this.innerList.get(this.nodeIDs.get(id)).getTentativeDistance();
+    }
+
+    public boolean containsNodeWithID(int id) {
+        if (id < 0 || id > this.nodeIDs.size()-1) throw new IllegalArgumentException();
+        if (this.nodeIDs.get(id) == -1) return false;
+        return true;
     }
 
     public boolean updateDistanceForNodeWithID(int id, Float dist) {
