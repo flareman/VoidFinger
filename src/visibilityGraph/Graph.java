@@ -12,28 +12,30 @@ import octree.OctreeException;
 
 public class Graph {
     private ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
-    public ArrayList<GraphEdge> edges = new ArrayList<GraphEdge>();
+    public ArrayList<ArrayList<GraphEdge>> edges = new ArrayList<ArrayList<GraphEdge>>();
     private Octree surface;
     private int numOfThreads;
     private ArrayList<Float> costs = new ArrayList<Float>();
-    private final Object mutex = new Object();
+    private final Object dijkstraMutex = new Object();
+    private final Object edgeMutex = new Object();
+    public int infinity = 0;
     
-    public Graph(ArrayList<Point> nds, Octree tree,int threads) throws GraphException {
+    public Graph(ArrayList<Point> nds, Octree tree, int threads) throws GraphException {
         if (nds.isEmpty())
             throw new EmptyNodeSetGraphException();
         if (nds.get(0).getDimensions() != tree.getDimensions())
             throw new InvalidCreationArgumentDimensionsGraphException();
         for (Point p: nds) {
-            nodes.add(new GraphNode(p));
+            this.nodes.add(new GraphNode(p));
+            edges.add(new ArrayList<GraphEdge>());
         }
-        surface = tree;
-        numOfThreads = threads;
+        this.surface = tree;
+        this.numOfThreads = threads;
     }
     
-    public int getNodeCount(){return this.nodes.size();}
+    public int getNodeCount() {return this.nodes.size();}
     public int getDimensions() { return this.surface.getDimensions(); }
-    public GraphNode getNode(int x) { return nodes.get(x); }
-    public GraphEdge getEdge(int x){ return edges.get(x); }
+    public GraphNode getNode(int n) { return nodes.get(n); }
     
     private void recurseGetOctreeLeafs(Point origin, Vector ray, ArrayList<Point> visible, OctNode root) throws GeometryException {
         if (root.getBoundingBox().intersectWithRay(ray, origin, false))
@@ -54,7 +56,7 @@ public class Graph {
         return result;
     }
     
-    public GraphEdge createEdgeForVisible(int i, int j) {
+    public void addEdgeForVisible(int i, int j) {
         ArrayList<Float> projections = new ArrayList<Float>();
         try {
             Vector ray = new Vector(this.nodes.get(i).getPoint(), this.nodes.get(j).getPoint());
@@ -64,7 +66,7 @@ public class Graph {
                 projections.add(ray.getProjection(v));
             }
         } catch (GeometryException ge) {}
-        if (projections.isEmpty()) return null;
+        if (projections.isEmpty()) return;
         Collections.sort(projections);
         Boolean visible = false;
         int clusterCount = 1;
@@ -85,14 +87,17 @@ public class Graph {
                 default: break;
             }
 
-            if (visible)
-                return new GraphEdge(i, j, this.nodes.get(i).getPoint().minkowskiDistanceFrom(this.nodes.get(j).getPoint(), 2));
-            else return null;
+            if (visible) {
+                synchronized(this.edgeMutex) {
+                    Float dist = this.nodes.get(i).getPoint().minkowskiDistanceFrom(this.nodes.get(j).getPoint(), 2);
+                    this.edges.get(i).add(new GraphEdge(j, dist));
+                    this.edges.get(j).add(new GraphEdge(i, dist));
+                }
+            }
         } catch (GeometryException ge) {
         } catch (GraphException gre) {
         } catch (OctreeException oe) {
         }
-        return null;
     }
     
     public void buildVisibilityGraph() {
@@ -107,56 +112,32 @@ public class Graph {
             } catch (InterruptedException ie) {}
     }
     
-    private ArrayList<Integer> getNeighbors(int node) {
-        ArrayList<Integer> neighbors = new ArrayList<Integer>();
-        for (GraphEdge e: this.edges) {
-            if (e.getNodes()[0] == node) {
-                neighbors.add(e.getNodes()[1]);
-                continue;
-            }
-            if (e.getNodes()[1] == node)
-                neighbors.add(e.getNodes()[0]);
-        }
-        return neighbors;
+    private ArrayList<GraphEdge> getAdjacencies(int node) throws GraphException {
+        if (node < 0 || node > this.nodes.size() - 1)
+            throw new InvalidMethodArgumentGraphException();
+        ArrayList<GraphEdge> result = new ArrayList<GraphEdge>();
+        result.addAll(this.edges.get(node));
+        return result;
     }
     
     public Float calculateInnerDistanceForNodes(int start, int end) {
-        Float[] tentative = new Float[this.nodes.size()];
-        tentative[start] = 0.0f;
-        for (int i = 0; i < nodes.size(); i++)
-            if (i != start)
-                tentative[i] = Float.POSITIVE_INFINITY;
-        int current = start;
-        ArrayList<Integer> visited = new ArrayList<Integer>();
-        ArrayList<Integer> neighbors;
-        while (!visited.contains(end)) {
-            neighbors = getNeighbors(current);
-            for (Integer i : neighbors) {
-                Float weight = 0.0f;
-                for (GraphEdge e: this.edges) {
-                    Integer[] nds = e.getNodes();
-                    if ((nds[0] == current && nds[1] == i) ||
-                            (nds[1] == current && nds[0] == i)) {
-                        weight = e.getWeight();
-                        break;
-                    }
-                    else continue;
-                }
-                tentative[i] = tentative[current] + weight;
+        PriorityQueue pq = new PriorityQueue(start, this.nodes.size());
+        QueueNode res;
+        while (true) {
+            res = pq.remove();
+            if (res.getTentativeDistance().isInfinite()) {
+                synchronized(this.dijkstraMutex) {infinity++;}
+                return Float.POSITIVE_INFINITY;
             }
-            visited.add(current);
-            Float minDist = Float.POSITIVE_INFINITY;
-            int next = -1;
-            for (int i = 0; i < tentative.length; i++)
-                if ((!visited.contains(i)) && (tentative[i] < minDist)) {
-                    minDist = tentative[i];
-                    next = i;
+            if (res.getNodeID().equals(end)) return res.getTentativeDistance();
+            try {
+                for (GraphEdge ge: this.getAdjacencies(res.getNodeID())) {
+                    if (pq.containsNodeWithID(ge.getEndpoint()))
+                        if (Float.compare(pq.getDistanceForNodeWithID(ge.getEndpoint()), res.getTentativeDistance() + ge.getWeight()) > 0)
+                            pq.updateDistanceForNodeWithID(ge.getEndpoint(), res.getTentativeDistance()+ge.getWeight());
                 }
-            if (next == -1) break;
-            if (minDist == Float.POSITIVE_INFINITY) break;
-            current = next;
+            } catch (GraphException e) {}
         }
-        return tentative[end];
     }
     
     public ArrayList<Float> getInnerDistances() {
@@ -169,21 +150,14 @@ public class Graph {
             try {
                 workers[i].join();
             } catch (InterruptedException ie) {}
+        System.out.println("Ignored "+infinity+" infinity distances");
         return this.costs;
     }
     
-    public void addEdges(ArrayList<GraphEdge> e) throws GraphException {
-        if (e == null)
-            throw new InvalidMethodArgumentGraphException();
-        synchronized(this.mutex) {
-            this.edges.addAll(e);
-        }
-    }
-
     public void addCosts(ArrayList<Float> c) throws GraphException {
         if (c == null)
             throw new InvalidMethodArgumentGraphException();
-        synchronized(this.mutex) {
+        synchronized(this.dijkstraMutex) {
             this.costs.addAll(c);
         }
     }

@@ -1,19 +1,16 @@
 package visibilityGraph;
 
 public class GraphEdge {
-    private Integer[] nodes = new Integer[2];
+    private Integer endpoint;
     private Float weight;
     
-    public GraphEdge(int node1, int node2, float weight) throws GraphException {
-        if (node1 < 0 || node2 < 0)
-            throw new InvalidEdgeCreationArgumentsGraphException("node IDs must be non-negative");
-        if (weight < 0)
+    public GraphEdge(int end, Float wgt) throws GraphException {
+        if (wgt < 0 || end < 0)
             throw new InvalidEdgeCreationArgumentsGraphException("edge weight must be non-negative");
-        nodes[0] = node1;
-        nodes[1] = node2;
-        this.weight = weight;
+        this.endpoint = end;
+        this.weight = wgt;
     }
     
     public Float getWeight() { return this.weight; }
-    public Integer[] getNodes() { return this.nodes; }
+    public Integer getEndpoint() { return this.endpoint; }
 }

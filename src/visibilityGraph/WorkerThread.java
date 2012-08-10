@@ -12,7 +12,6 @@ public class WorkerThread extends Thread {
         vGraph = graph;
         numOfThreads = threads;
     }
-    
 }
 
 class VgraphCreationThread extends WorkerThread {
@@ -22,14 +21,8 @@ class VgraphCreationThread extends WorkerThread {
     public void run() {
         ArrayList<GraphEdge> localEdges = new ArrayList<GraphEdge>();
         for (int i = this.threadID; i < this.vGraph.getNodeCount(); i += this.numOfThreads) {
-            for (int j = i+1; j < this.vGraph.getNodeCount(); j++) {
-                GraphEdge edge = this.vGraph.createEdgeForVisible(i, j);
-                if (edge != null)
-                    localEdges.add(edge);
-            }
-            try {
-                this.vGraph.addEdges(localEdges);
-            } catch (GraphException gre) {}
+            for (int j = i+1; j < this.vGraph.getNodeCount(); j++)
+                this.vGraph.addEdgeForVisible(i, j);
         }
     }
 }

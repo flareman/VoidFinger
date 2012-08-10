@@ -11,15 +11,17 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
     
     public PriorityQueue(int startID, int capacity) {
         super();
-        this.nodeIDs.ensureCapacity(capacity);
         this.innerList.add(new QueueNode(0.0f, startID));
-        this.nodeIDs.set(startID, 0);
         int add = 1;
         for (int i = 0; i < capacity; i ++)
             if (i != startID) {
                 this.innerList.add(new QueueNode(Float.POSITIVE_INFINITY, i));
-                this.nodeIDs.set(i, i+add);
-            } else add--;
+                this.nodeIDs.add(i+add);
+            } else {
+                this.nodeIDs.add(0);
+                add = 0;
+            }
+        return;
     }
 
     public PriorityQueue() { super(); }
@@ -40,8 +42,8 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
     private int compareNodes(int i, int j) { return this.innerList.get(i).compareTo(this.innerList.get(j)); }
 
     private void switchNodes(int i, int j) {
-        this.nodeIDs.set(this.nodeIDs.get(this.innerList.get(i).getNodeID()), j);
-        this.nodeIDs.set(this.nodeIDs.get(this.innerList.get(j).getNodeID()), i);
+        this.nodeIDs.set(this.innerList.get(i).getNodeID(), j);
+        this.nodeIDs.set(this.innerList.get(j).getNodeID(), i);
         QueueNode left = this.innerList.get(i);
         this.innerList.set(i, this.innerList.get(j));
         this.innerList.set(j, left);
@@ -99,8 +101,7 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
         
         int p = this.innerList.size(), p2;
         this.innerList.add(qn);
-        this.nodeIDs.ensureCapacity(qn.getNodeID()+1);
-        this.nodeIDs.set(qn.getNodeID(), p);
+        this.nodeIDs.add(qn.getNodeID());
         while (true) {
             if (p == 0) break;
             p2 = (p-1)/2;
@@ -112,17 +113,20 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
     }
 
     public QueueNode pop() {
+        if (this.isEmpty()) return null;
         QueueNode result = this.peek();
         int p = 0, p1, p2, pn;
-        this.switchNodes(0, this.innerList.size()-1);
+        this.innerList.set(0, this.innerList.get(this.innerList.size()-1));
         this.innerList.remove(this.innerList.size()-1);
         this.nodeIDs.set(result.getNodeID(), -1);
+        if (this.isEmpty()) return result;
+        this.nodeIDs.set(this.innerList.get(0).getNodeID(), 0);
         while (true) {
             pn = p;
             p1 = 2*p+1;
             p2 = 2*p+2;
-            if (this.innerList.size() > p1 && this.compareNodes(p, p1) < 0) p = p1;
-            if (this.innerList.size() > p2 && this.compareNodes(p, p2) < 0) p = p2;
+            if (this.innerList.size() > p1 && this.compareNodes(p, p1) > 0) p = p1;
+            if (this.innerList.size() > p2 && this.compareNodes(p, p2) > 0) p = p2;
             if (p == pn) break;
             this.switchNodes(p, pn);
         }
