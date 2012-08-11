@@ -11,6 +11,7 @@ import java.util.Iterator;
 import kdtree.KDTree;
 import kdtree.KDTreeCell;
 import kdtree.KDTreeCellException;
+import potential.EPArray;
 
 public class FilterClusterEngine {
     private KDTree kdtree;
@@ -125,10 +126,17 @@ public class FilterClusterEngine {
         return this.repetitions;
     }
 
-    public ArrayList<Point> getClusterCenters() {
+    public ArrayList<Point> getClusterCenters(EPArray potentials) {
         ArrayList<Point> result = new ArrayList<Point>();
         for (FCECenter c: this.centers)
-            result.add(c.getCenter());
+            try {
+                Float[] coords = new Float[4];
+                coords[0] = c.getCenter().getCoordinate(0);
+                coords[1] = c.getCenter().getCoordinate(1);
+                coords[2] = c.getCenter().getCoordinate(2);
+                coords[3] = potentials.getPotentialForCoordinates(c.getCenter());
+                result.add(new Point(coords));
+            } catch (GeometryException ge) {}
         return result;
     }
 }
