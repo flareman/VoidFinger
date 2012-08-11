@@ -23,7 +23,7 @@ public class Graph {
     public Graph(ArrayList<Point> nds, Octree tree, int threads) throws GraphException {
         if (nds.isEmpty())
             throw new EmptyNodeSetGraphException();
-        if (nds.get(0).getDimensions() != tree.getDimensions())
+        if (nds.get(0).getDimensions() < tree.getDimensions())
             throw new InvalidCreationArgumentDimensionsGraphException();
         for (Point p: nds) {
             this.nodes.add(new GraphNode(p));

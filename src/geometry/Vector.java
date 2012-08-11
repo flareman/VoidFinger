@@ -74,10 +74,11 @@ public class Vector {
     }
     
     public Float getProjection(Vector v) throws GeometryException {
-        if (v.getDimensions() != this.getDimensions())
+        if (v.getDimensions() < 3 && this.getDimensions() > 3 || v.getDimensions() > 3 && this.getDimensions() < 3 ||
+                (v.getDimensions() < 3 && this.getDimensions() < 3 && this.getDimensions() != v.getDimensions()))
             throw new GeometryException("Vector projections require vectors of same dimensionality");
         Float dp = 0.0f;
-        for (int i = 0; i < this.getDimensions(); i++)
+        for (int i = 0; i < ((this.getDimensions() > 3)?3:this.getDimensions()); i++)
             dp += v.getCoordinate(i)*this.getCoordinate(i);
         return dp/this.getMeasure();
     }
