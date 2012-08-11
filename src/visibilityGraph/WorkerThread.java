@@ -19,7 +19,6 @@ class VgraphCreationThread extends WorkerThread {
     
     @Override
     public void run() {
-        ArrayList<GraphEdge> localEdges = new ArrayList<GraphEdge>();
         for (int i = this.threadID; i < this.vGraph.getNodeCount(); i += this.numOfThreads) {
             for (int j = i+1; j < this.vGraph.getNodeCount(); j++)
                 this.vGraph.addEdgeForVisible(i, j);
