@@ -11,6 +11,8 @@ import kdtree.KDTree;
 import kdtree.KDTreeException;
 import octree.Octree;
 import octree.OctreeException;
+import potential.EPArray;
+import potential.EPArrayException;
 import visibilityGraph.Graph;
 import visibilityGraph.GraphException;
 
@@ -21,16 +23,23 @@ public class VoidFinger {
     private FilterClusterEngine fce = null;
     private Graph graph = null;
     private Histogram histogram = null;
+    private EPArray potentials = null;
+
+    public int getElapsedSeconds() { return (int)(this.time/1000000000); }
     
-    public VoidFinger(String filename, Integer centers, Integer threads, Integer bins, String output) {
+    public VoidFinger(String filename, String potentialsFilename, Integer ditherSteps, Integer centers, Integer threads, Integer bins, String output) {
         try {
             this.time = System.nanoTime();
             if (filename == null || filename.equals(""))
-                throw new IllegalArgumentException("You must specify a filename");
+                throw new IllegalArgumentException("You must specify an input filename");
+            if (potentialsFilename == null || potentialsFilename.equals(""))
+                throw new IllegalArgumentException("You must specify an EP input filename");
             if (output == null || output.equals(""))
                 throw new IllegalArgumentException("You must specify an output filename");
             if (centers == null || centers < 1)
                 throw new IllegalArgumentException("The clustering centers must be at least one");
+            if (ditherSteps == null || ditherSteps < 0)
+                throw new IllegalArgumentException("The dithering steps for the EP approximations must be non-negative");
             if (bins == null || bins < 1)
                 throw new IllegalArgumentException("The histogram bins must be at least one");
             if (threads == null || threads < 1)
@@ -43,19 +52,25 @@ public class VoidFinger {
             System.out.println("Arguments:");
             System.out.println("==========");
             System.out.println("Input file:\t"+filename);
+            System.out.println("EP file:\t"+potentialsFilename);
             System.out.println("# of centers:\t"+centers);
             System.out.println("# of threads:\t"+threads);
             System.out.println("Histogram bins:\t"+bins);
             System.out.println("Output file:\t"+output);
             System.out.println();
+            System.out.print("Parsing electrostatic potentials from file... ");
+            this.potentials = EPArray.readArrayFromFile(potentialsFilename, ditherSteps);
+            System.out.println("done");
+            System.out.print("Parsing molecular octree from file... ");
             this.molecule = Octree.parseFromFile(filename);
+            System.out.println("done");
             this.kdtree = new KDTree(this.molecule);
             this.fce = new FilterClusterEngine(this.kdtree, centers);
             System.out.print("Filtering kd-tree... ");
             int passes = this.fce.performClustering();
             System.out.println("done after "+passes+" passes");
-            this.graph = new Graph(this.fce.getClusterCenters(), this.molecule, threads);
-            System.out.print("Building visibilty graph... ");
+            this.graph = new Graph(this.fce.getClusterCenters(this.potentials), this.molecule, threads);
+            System.out.print("Building visibilty graph and integrating EPs... ");
             this.graph.buildVisibilityGraph();
             System.out.println("done");
             System.out.print("Calculating inner distances... ");
@@ -66,7 +81,6 @@ public class VoidFinger {
             this.histogram = Histogram.createFromCollection(bins, result);
             System.out.println("done");
             this.histogram.saveToFile(output);
-            this.time = System.nanoTime() - this.time;
         } catch (IllegalArgumentException iae) {
             System.out.println(iae.getLocalizedMessage());
         } catch (FileNotFoundException fe) {
@@ -83,19 +97,20 @@ public class VoidFinger {
             System.out.println(gre.getLocalizedMessage());
         } catch (HistogramException he) {
             System.out.println(he.getLocalizedMessage());
-        }
+        } catch (EPArrayException epae) {
+            System.out.println(epae.getLocalizedMessage());
+        } finally { this.time = System.nanoTime() - this.time; }
+        
     }
     
-    public int getElapsedSeconds() { return (int)(this.time/1000000000); }
-    
     public static void main(String[] args) {
-        if (args.length < 5) {
+        if (args.length < 7) {
             System.out.println("Invalid argument count.");
             System.out.println("Proper syntax is:");
-            System.out.println("java VoidFinger [input] [centers] [threads] [bins] [output]");
+            System.out.println("java VoidFinger [input] [EP input] [EP dither] [centers] [threads] [bins] [output]");
             return;
         }
-        VoidFinger instance = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), args[4]);
+        VoidFinger instance = new VoidFinger(args[0], args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]), args[6]);
         System.out.println("Total running time: "+instance.getElapsedSeconds()+" sec.");
     }
 }
