@@ -150,7 +150,6 @@ public class Graph {
             try {
                 workers[i].join();
             } catch (InterruptedException ie) {}
-        System.out.println("Ignored "+infinity+" infinity distances");
         return this.costs;
     }
     

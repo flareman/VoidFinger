@@ -7,6 +7,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 
 public class Histogram {
     private Integer[] bins;
@@ -97,5 +98,14 @@ public class Histogram {
         if (i != c - 1) throw new InvalidFileSyntaxHistogramException();
         input.close();
         return new Histogram(c, m, x, bins);
+    }
+
+    static public Histogram createFromCollection(Integer n, Collection<Float> coll) throws HistogramException {
+        if (n < 1) throw new InvalidCreationArgumentsHistogramException();
+        if (coll == null) throw new NullPointerException();
+        if (coll.isEmpty()) throw new InvalidCreationArgumentsHistogramException();
+        Histogram result = new Histogram(n, Collections.min(coll), Collections.max(coll));
+        result.addAll(coll);
+        return result;
     }
 }
