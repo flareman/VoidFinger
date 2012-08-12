@@ -18,7 +18,7 @@ public class Graph {
     private ArrayList<Float> costs = new ArrayList<Float>();
     private final Object dijkstraMutex = new Object();
     private final Object edgeMutex = new Object();
-    private int totalEdges = 0;
+    public int totalEdges = 0;
     
     public Graph(ArrayList<Point> nds, Octree tree, int threads) throws GraphException {
         if (nds.isEmpty())
@@ -50,7 +50,7 @@ public class Graph {
             } catch (OctNodeException one) {}
     }
     
-    private ArrayList<Point> getOctreeLeafs(Point origin,Vector ray) throws GeometryException {
+    private ArrayList<Point> getOctreeLeafs(Point origin, Vector ray) throws GeometryException {
         ArrayList<Point> result = new ArrayList<Point>();
         recurseGetOctreeLeafs(origin, ray, result, this.surface.getRoot());
         return result;
@@ -59,8 +59,8 @@ public class Graph {
     public void addEdgeForVisible(int i, int j) {
         ArrayList<Float> projections = new ArrayList<Float>();
         try {
-            Vector ray = new Vector(this.nodes.get(i).getPoint(), this.nodes.get(j).getPoint());
-            ArrayList<Point> visibleList = getOctreeLeafs(this.nodes.get(i).getPoint(), ray);
+            Vector ray = new Vector(this.nodes.get(i).getPoint(), this.nodes.get(j).getPoint(), 3);
+            ArrayList<Point> visibleList = getOctreeLeafs(this.nodes.get(i).getPoint().reducedDimensionsPoint(3), ray);
             for (Point p: visibleList) {
                 Vector v = new Vector(p);
                 projections.add(ray.getProjection(v));
@@ -122,7 +122,6 @@ public class Graph {
     }
     
     public Float calculateInnerDistanceForNodes(int start, int end) {
-        if (end == start+1) System.out.println(start);
         PriorityQueue pq = new PriorityQueue(start, this.nodes.size());
         QueueNode res;
         while (true) {
@@ -141,7 +140,6 @@ public class Graph {
     }
     
     public ArrayList<Float> getInnerDistances() {
-        System.out.println("[total edges: "+this.totalEdges+"]");
         DijkstraThread[] workers = new DijkstraThread[numOfThreads];
         for (int i = 0; i < this.numOfThreads; i++) {
             workers[i] = new DijkstraThread(numOfThreads, i, this);
