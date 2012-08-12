@@ -135,5 +135,12 @@ public class Point {
             newCoords[i] *= scaleMatrix[i];
         return new Point(newCoords);
     }
+    
+    public Point reducedDimensionsPoint(int retain) throws GeometryException {
+        if (retain < 0 || retain > this.dimensions)
+            throw new GeometryException("Cannot retain more dimensions than those originally available");
+        Float[] newCoords = Arrays.copyOf(this.coords, retain);
+        return new Point(newCoords);
+    }
 }
 
