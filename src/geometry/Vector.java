@@ -22,7 +22,18 @@ public class Vector {
         this.endpoint = v2.getPoint();
     }
 
+    public Vector(Point start, Point end, int retain) throws GeometryException {
+        Vector v1 = new Vector(start);
+        Vector v2 = new Vector(end);
+        v2.subtract(v1);
+        this.endpoint = v2.getPoint(retain);
+    }
+
     public Vector(Point p) {
+        this.endpoint = new Point(p);
+    }
+
+    public Vector(Point p, int retain) {
         this.endpoint = new Point(p);
     }
 
@@ -39,6 +50,9 @@ public class Vector {
     }
     
     public Point getPoint() { return this.endpoint; }
+    public Point getPoint(int retain) throws GeometryException {
+        return this.endpoint.reducedDimensionsPoint(retain);
+    }
     public Integer getDimensions() { return this.endpoint.getDimensions(); }
 
     public Vector inverseVector() {
