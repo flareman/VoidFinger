@@ -96,7 +96,7 @@ public class FilterClusterEngine {
         for (FCECenter c: this.centers) {
             if (c.hasConverged(this.kdtree.getThreshold()))
                 convergedCenters++;
-            if (convergedCenters >= this.centers.size() - 1) return true;
+            if (convergedCenters >= this.centers.size() - (this.centers.size()/200)) return true;
         }
         return false;
     }
