@@ -18,6 +18,7 @@ public class Graph {
     private ArrayList<Float> costs = new ArrayList<Float>();
     private final Object dijkstraMutex = new Object();
     private final Object edgeMutex = new Object();
+    private int totalEdges = 0;
     
     public Graph(ArrayList<Point> nds, Octree tree, int threads) throws GraphException {
         if (nds.isEmpty())
@@ -91,6 +92,7 @@ public class Graph {
                     Float dist = this.nodes.get(i).getPoint().minkowskiDistanceFrom(this.nodes.get(j).getPoint(), 2);
                     this.edges.get(i).add(new GraphEdge(j, dist));
                     this.edges.get(j).add(new GraphEdge(i, dist));
+                    this.totalEdges++;
                 }
             }
         } catch (GeometryException ge) {
@@ -139,6 +141,7 @@ public class Graph {
     }
     
     public ArrayList<Float> getInnerDistances() {
+        System.out.println("[total edges: "+this.totalEdges+"]");
         DijkstraThread[] workers = new DijkstraThread[numOfThreads];
         for (int i = 0; i < this.numOfThreads; i++) {
             workers[i] = new DijkstraThread(numOfThreads, i, this);
