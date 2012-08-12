@@ -43,7 +43,7 @@ public class BoundingBox {
     }
     
     public Boolean intersectWithRay(Vector r, Point p, Boolean infinite) throws GeometryException {
-        if (r.getDimensions() != p.getDimensions() || r.getDimensions() < 3)
+        if (r.getDimensions() < 3 || r.getDimensions() > p.getDimensions())
             throw new GeometryException("Ray vector and origin dimensionality must match and be at least 3");
         if (infinite) return (this.intersectWithRay(r, p, false) || this.intersectWithRay(r.inverseVector(), p, false));
 
@@ -79,7 +79,7 @@ public class BoundingBox {
         Float[] nCoords = this.max.getCoords();
         Float[] normalCoords = pl.getNormal().getCoords();
         
-        for (int i = 0; i < this.getDimensions(); i++)
+        for (int i = 0; i < (this.getDimensions() > 3?3:this.getDimensions()); i++)
             if (normalCoords[i] >= 0) {
                 Float temp = nCoords[i];
                 nCoords[i] = pCoords[i];

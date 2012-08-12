@@ -81,9 +81,11 @@ public class Point {
     public Integer getDimensions() { return this.dimensions; }
     
     public Point midpointFromPoint(Point p) throws GeometryException {
-        if (p.getDimensions() != this.getDimensions()) throw new GeometryException("Midpoint can be calculated only for same-dimensionality points");
-        Float[] temp = new Float[this.coords.length];
-        for (int i = 0; i < this.coords.length; i++)
+        if ((p.getDimensions() < 3 && this.getDimensions() >= 3) || 
+                (p.getDimensions() >= 3 && this.getDimensions() < 3))
+            throw new GeometryException("Midpoint can be calculated only for same-dimensionality points");
+        Float[] temp = new Float[(this.coords.length > 3)?3:this.coords.length];
+        for (int i = 0; i < temp.length; i++)
             temp[i] = (this.coords[i] + p.getCoordinate(i)) / 2;
         return new Point(temp);
     }
