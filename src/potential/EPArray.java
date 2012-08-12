@@ -14,7 +14,7 @@ public class EPArray {
     private Point origin;
     private Integer interpolationRange;
     
-    public EPArray(Point o, Float[] s, Integer[] q, Integer d) {
+    public EPArray(Point o, Float[] s, Integer[] q, Float d) {
         if (o == null || s == null || q == null || d == null)
             throw new NullPointerException();
         if (s.length != 3 || o.getDimensions() != 3 || q.length != 3 || d < 0)
@@ -28,7 +28,13 @@ public class EPArray {
             if (i == null) throw new IllegalArgumentException(new NullPointerException());
             if (i < 1) throw new IllegalArgumentException();
         }
-        this.interpolationRange = d;
+        this.interpolationRange = 0;
+        for (int i = 0; i < 3; i++)
+            if (d > s[i]) {
+                int temp = (int)(d / s[i]);
+                if (temp < this.interpolationRange)
+                    this.interpolationRange = temp;
+            }
         this.lengths = Arrays.copyOf(s, 3);
         this.steps = Arrays.copyOf(q, 3);
         this.potentials = new float[q[0]][q[1]][q[2]];
@@ -85,7 +91,7 @@ public class EPArray {
         throw new IllegalStateException();
     }
     
-    public static EPArray readArrayFromFile(String filename, Integer d) throws IOException, EPArrayException {
+    public static EPArray readArrayFromFile(String filename, Float d) throws IOException, EPArrayException {
         BufferedReader input = new BufferedReader(new FileReader(filename));
         String line = "";
         Float orx = 0.0f, ory = 0.0f, orz = 0.0f;
