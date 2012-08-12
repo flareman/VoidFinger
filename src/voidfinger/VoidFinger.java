@@ -27,7 +27,7 @@ public class VoidFinger {
 
     public int getElapsedSeconds() { return (int)(this.time/1000000000); }
     
-    public VoidFinger(String filename, String potentialsFilename, Integer ditherSteps, Integer centers, Integer threads, Integer bins, String output) {
+    public VoidFinger(String filename, String potentialsFilename, Integer centers, Integer threads, Integer bins, String output) {
         try {
             this.time = System.nanoTime();
             if (filename == null || filename.equals(""))
@@ -38,8 +38,6 @@ public class VoidFinger {
                 throw new IllegalArgumentException("You must specify an output filename");
             if (centers == null || centers < 1)
                 throw new IllegalArgumentException("The clustering centers must be at least one");
-            if (ditherSteps == null || ditherSteps < 0)
-                throw new IllegalArgumentException("The dithering steps for the EP approximations must be non-negative");
             if (bins == null || bins < 1)
                 throw new IllegalArgumentException("The histogram bins must be at least one");
             if (threads == null || threads < 1)
@@ -58,9 +56,6 @@ public class VoidFinger {
             System.out.println("Histogram bins:\t"+bins);
             System.out.println("Output file:\t"+output);
             System.out.println();
-            System.out.print("Parsing electrostatic potentials from file... ");
-            this.potentials = EPArray.readArrayFromFile(potentialsFilename, ditherSteps);
-            System.out.println("done");
             System.out.print("Parsing molecular octree from file... ");
             this.molecule = Octree.parseFromFile(filename);
             System.out.println("done");
@@ -69,10 +64,14 @@ public class VoidFinger {
             System.out.print("Filtering kd-tree... ");
             int passes = this.fce.performClustering();
             System.out.println("done after "+passes+" passes");
+            System.out.print("Parsing electrostatic potentials from file... ");
+            this.potentials = EPArray.readArrayFromFile(potentialsFilename, this.kdtree.getThreshold());
+            System.out.println("done");
             this.graph = new Graph(this.fce.getClusterCenters(this.potentials), this.molecule, threads);
-            System.out.print("Building visibilty graph and integrating EPs... ");
+            System.out.print("Building visibility graph... ");
             this.graph.buildVisibilityGraph();
             System.out.println("done");
+            System.out.println(this.graph.totalEdges+" total edges created.");
             System.out.print("Calculating inner distances... ");
             ArrayList<Float> result = this.graph.getInnerDistances();
             System.out.println("done");
@@ -104,13 +103,13 @@ public class VoidFinger {
     }
     
     public static void main(String[] args) {
-        if (args.length < 7) {
+        if (args.length < 6) {
             System.out.println("Invalid argument count.");
             System.out.println("Proper syntax is:");
             System.out.println("java VoidFinger [input] [EP input] [EP dither] [centers] [threads] [bins] [output]");
             return;
         }
-        VoidFinger instance = new VoidFinger(args[0], args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), Integer.parseInt(args[5]), args[6]);
+        VoidFinger instance = new VoidFinger(args[0], args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), args[5]);
         System.out.println("Total running time: "+instance.getElapsedSeconds()+" sec.");
     }
 }
