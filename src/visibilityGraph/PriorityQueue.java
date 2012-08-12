@@ -21,7 +21,6 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
                 this.nodeIDs.add(0);
                 add = 0;
             }
-        return;
     }
 
     public PriorityQueue() { super(); }
