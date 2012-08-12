@@ -18,7 +18,6 @@ public class Graph {
     private ArrayList<Float> costs = new ArrayList<Float>();
     private final Object dijkstraMutex = new Object();
     private final Object edgeMutex = new Object();
-    public int infinity = 0;
     
     public Graph(ArrayList<Point> nds, Octree tree, int threads) throws GraphException {
         if (nds.isEmpty())
@@ -121,14 +120,13 @@ public class Graph {
     }
     
     public Float calculateInnerDistanceForNodes(int start, int end) {
+        if (end == start+1) System.out.println(start);
         PriorityQueue pq = new PriorityQueue(start, this.nodes.size());
         QueueNode res;
         while (true) {
             res = pq.remove();
-            if (res.getTentativeDistance().isInfinite()) {
-                synchronized(this.dijkstraMutex) {infinity++;}
+            if (res.getTentativeDistance().isInfinite())
                 return Float.POSITIVE_INFINITY;
-            }
             if (res.getNodeID().equals(end)) return res.getTentativeDistance();
             try {
                 for (GraphEdge ge: this.getAdjacencies(res.getNodeID())) {
