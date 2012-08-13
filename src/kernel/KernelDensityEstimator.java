@@ -15,10 +15,15 @@ public class KernelDensityEstimator {
     public static final int KDE_TRIANGULAR = 2;
     public static final int KDE_RECTANGULAR = 3;
     private static final int KDE_MAX_TYPE = 3;
+    private static final int maxSimpsonRepetitions = 20;
+    private static final double epsilon = 1e-9;
+            
+    private interface Integrable { public Float getValue(Float x); }
 
     private int kernel = KDE_GAUSSIAN;
     private Integer n = 0;
     private Float h = 0.0f;
+    private Float margin = 1.0f;
     private Boolean optimalBandwidth = false;
     private ArrayList<Float> values = new ArrayList<Float>();
     
@@ -51,9 +56,40 @@ public class KernelDensityEstimator {
         }
     }
 
+    private Float integrate(Integrable function, Float a, Float b) {
+        Float t, tprev = -1.0f;
+        Float p, pprev = -1.0f;
+        int nnext = 1;
+        t = (b - a)*(function.getValue(a) + function.getValue(a))/2.0f;
+        for (int j = 1; j < maxSimpsonRepetitions; j++) {
+            Float delta = (b - a) / nnext;
+            Float x = a + delta/2;
+            Float sum = 0.0f;
+            for (int k = 0; k < nnext; k++) { sum += function.getValue(x); x += delta; }
+            t = (t + (b - a)* sum / nnext)/2.0f;
+            nnext *= 2;
+            p = (4*t - tprev)/3;
+            if (Math.abs(p - pprev) < (1 + Math.abs(pprev))*epsilon)
+                return p;
+            pprev = p;
+            tprev = t;
+        }
+        return -1.0f;
+    }
+
+    private void updateMargin() {
+        switch (this.kernel) {
+            case KDE_GAUSSIAN: this.margin = 3.0f; break;
+            case KDE_EPANECHNIKOV: this.margin = new Float(Math.sqrt(5)); break;
+            case KDE_TRIANGULAR: case KDE_RECTANGULAR: this.margin = 1.0f; break;
+            default: throw new IllegalStateException("Unrecognized kernel function");
+        }
+    }
+    
     public KernelDensityEstimator(int type) {
         if (type < 0 || type > KDE_MAX_TYPE) throw new IllegalArgumentException();
         this.kernel = type;
+        this.updateMargin();
         this.optimalBandwidth = true;
     }
     
@@ -61,6 +97,7 @@ public class KernelDensityEstimator {
         if (type < 0 || type > KDE_MAX_TYPE) throw new IllegalArgumentException();
         if (Float.compare(bandwidth, 0.0f) <= 0) throw new IllegalArgumentException();
         this.kernel = type;
+        this.updateMargin();
         this.h = bandwidth;
         this.optimalBandwidth = false;
     }
@@ -102,6 +139,16 @@ public class KernelDensityEstimator {
         return sum/(this.n*this.h);
     }
     
+    private Float getMin() {
+        if (this.values.isEmpty()) return 0.0f;
+        return this.values.get(0) - this.margin;
+    }
+    
+    private Float getMax() {
+        if (this.values.isEmpty()) return 0.0f;
+        return this.values.get(this.values.size()-1) + this.margin;
+    }
+
     public void writeEstimatorToFile(String filename) throws IOException {
         if (this.values.isEmpty()) return;
         PrintWriter out = new PrintWriter(new FileWriter(filename));
@@ -131,20 +178,19 @@ public class KernelDensityEstimator {
         if (steps < 1) throw new IllegalArgumentException();
         if (this.values.isEmpty()) return;
         PrintWriter out = new PrintWriter(new FileWriter(filename));
-        Float edge;
-        switch (this.kernel) {
-            case KDE_GAUSSIAN: edge = 3.0f; break;
-            case KDE_EPANECHNIKOV: edge = new Float(Math.sqrt(5)); break;
-            case KDE_TRIANGULAR: case KDE_RECTANGULAR: edge = 1.0f; break;
-            default: throw new IllegalStateException("Unrecognized kernel function");
-        }
-        Float min = this.values.get(0) - edge;
-        Float max = this.values.get(this.values.size()-1) + edge;
-        out.println(min);
-        out.println(max);
-        Float increment = (max - min)/steps;
-        for (Float f = min; f < max + increment; f += increment)
+        out.println(this.getMin());
+        out.println(this.getMax());
+        Float increment = (this.getMax() - this.getMin())/steps;
+        for (Float f = this.getMin(); f < this.getMax() + increment; f += increment)
             out.println(this.getValue(f));
         out.close();
+    }
+    
+    public Float getDistanceFromKDE(final KernelDensityEstimator target) {
+        Float a = Math.min(this.getMin(), target.getMin());
+        Float b = Math.max(this.getMax(), target.getMax());
+        return this.integrate(new Integrable() { public Float getValue(Float x) {
+            return Math.abs(this.getValue(x) - target.getValue(x));
+        } }, a, b);
     }
 }
