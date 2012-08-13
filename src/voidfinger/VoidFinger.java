@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.util.ArrayList;
 import kdtree.KDTree;
 import kdtree.KDTreeException;
+import kernel.KernelDensityEstimator;
 import octree.Octree;
 import octree.OctreeException;
 import potential.EPArray;
@@ -24,15 +25,21 @@ public class VoidFinger {
     private Graph graph = null;
     private Histogram histogram = null;
     private EPArray potentials = null;
+    private KernelDensityEstimator estimator = null;
 
     public int getElapsedSeconds() { return (int)(this.time/1000000000); }
     
-    public VoidFinger(String filename, String potentialsFilename, Integer centers, Integer threads, Integer bins, String output) {
+    public VoidFinger(String filename, String potentialsFilename, Integer centers, Integer threads,
+            Integer bins, String output, String estimatorOutput, String estimatorPlotOutput) {
         try {
             this.time = System.nanoTime();
             if (filename == null || filename.equals(""))
                 throw new IllegalArgumentException("You must specify an input filename");
             if (potentialsFilename == null || potentialsFilename.equals(""))
+                throw new IllegalArgumentException("You must specify an EP input filename");
+            if (estimatorOutput == null || estimatorOutput.equals(""))
+                throw new IllegalArgumentException("You must specify an EP input filename");
+            if (estimatorPlotOutput == null || estimatorPlotOutput.equals(""))
                 throw new IllegalArgumentException("You must specify an EP input filename");
             if (output == null || output.equals(""))
                 throw new IllegalArgumentException("You must specify an output filename");
@@ -54,7 +61,9 @@ public class VoidFinger {
             System.out.println("# of centers:\t"+centers);
             System.out.println("# of threads:\t"+threads);
             System.out.println("Histogram bins:\t"+bins);
-            System.out.println("Output file:\t"+output);
+            System.out.println("Histogram file:\t"+output);
+            System.out.println("Estimator file:\t"+estimatorOutput);
+            System.out.println("Estimated plot:\t"+estimatorPlotOutput);
             System.out.println();
             System.out.print("Parsing molecular octree from file... ");
             this.molecule = Octree.parseFromFile(filename);
@@ -80,6 +89,11 @@ public class VoidFinger {
             this.histogram = Histogram.createFromCollection(bins, result);
             System.out.println("done");
             this.histogram.saveToFile(output);
+            System.out.print("Building kernel density estimator... ");
+            this.estimator = KernelDensityEstimator.generateEstimatorFromValues(KernelDensityEstimator.KDE_GAUSSIAN, result);
+            this.estimator.writeEstimatorToFile(estimatorOutput);
+            this.estimator.writeApproximateCurveToFile(estimatorPlotOutput, bins);
+            System.out.println("done");
         } catch (IllegalArgumentException iae) {
             System.out.println(iae.getLocalizedMessage());
         } catch (FileNotFoundException fe) {
@@ -104,13 +118,13 @@ public class VoidFinger {
     
     public static void main(String[] args) {
         System.out.println();
-        if (args.length < 6) {
+        if (args.length < 8) {
             System.out.println("Invalid argument count.");
             System.out.println("Proper syntax is:");
-            System.out.println("java VoidFinger [input] [EP input] [centers] [threads] [bins] [output]");
+            System.out.println("java VoidFinger [input] [EP input] [centers] [threads] [bins] [histogram_out] [KDE_out] [plot_out]");
             return;
         }
-        VoidFinger instance = new VoidFinger(args[0], args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), args[5]);
+        VoidFinger instance = new VoidFinger(args[0], args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), args[5], args[6], args[7]);
         System.out.println("Total running time: "+instance.getElapsedSeconds()+" sec.");
     }
 }
