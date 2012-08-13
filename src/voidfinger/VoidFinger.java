@@ -103,10 +103,11 @@ public class VoidFinger {
     }
     
     public static void main(String[] args) {
+        System.out.println();
         if (args.length < 6) {
             System.out.println("Invalid argument count.");
             System.out.println("Proper syntax is:");
-            System.out.println("java VoidFinger [input] [EP input] [EP dither] [centers] [threads] [bins] [output]");
+            System.out.println("java VoidFinger [input] [EP input] [centers] [threads] [bins] [output]");
             return;
         }
         VoidFinger instance = new VoidFinger(args[0], args[1], Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), args[5]);
