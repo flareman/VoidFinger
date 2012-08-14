@@ -56,7 +56,6 @@ public class KDTree {
             this.root = new KDTreeCell(dimensions, 0, pointArrays, min, max);
             this.length = octree.getLength();
             this.threshold = octree.getMinNodeLength();
-            System.out.println("Created a kd-tree with depth " + this.root.getMaxDepth()+" and "+this.root.getPointCount()+" points.");
         } catch (CoordinateComparatorException cce) {
             this.root =  null;
             cce.printStackTrace();
@@ -67,6 +66,7 @@ public class KDTree {
     }
     
     public Integer getMaxDepth() { return this.root.getMaxDepth(); }
+    public Integer getPointCount() { return this.root.getPointCount(); }
     public ArrayList<Point> getAllPoints() { return this.points; }
     public KDTreeCell getRoot() { return this.root; }
     public Float getLength() { return this.length; }
