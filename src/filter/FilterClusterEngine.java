@@ -108,6 +108,7 @@ public class FilterClusterEngine {
     
     public int performClustering(Integer cutoff) throws FCEException {
         this.generateRandomCenters();
+        this.repetitions = 0;
         while (!this.checkForConvergence(cutoff)) {
             this.filter(this.kdtree.getRoot(), this.centers);
             this.repetitions++;
