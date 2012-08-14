@@ -15,8 +15,6 @@ public class KernelDensityEstimator {
     public static final int KDE_TRIANGULAR = 2;
     public static final int KDE_RECTANGULAR = 3;
     private static final int KDE_MAX_TYPE = 3;
-    private static final int maxSimpsonRepetitions = 20;
-    private static final double epsilon = 1e-9;
             
     private interface Integrable { public Float getValue(Float x); }
 
@@ -56,25 +54,17 @@ public class KernelDensityEstimator {
         }
     }
 
-    private Float integrate(Integrable function, Float a, Float b) {
-        Float t, tprev = -1.0f;
-        Float p, pprev = -1.0f;
-        int nnext = 1;
-        t = (b - a)*(function.getValue(a) + function.getValue(a))/2.0f;
-        for (int j = 1; j < maxSimpsonRepetitions; j++) {
-            Float delta = (b - a) / nnext;
-            Float x = a + delta/2;
-            Float sum = 0.0f;
-            for (int k = 0; k < nnext; k++) { sum += function.getValue(x); x += delta; }
-            t = (t + (b - a)* sum / nnext)/2.0f;
-            nnext *= 2;
-            p = (4*t - tprev)/3;
-            if (Math.abs(p - pprev) < (1 + Math.abs(pprev))*epsilon)
-                return p;
-            pprev = p;
-            tprev = t;
+    private Float integrate(Integrable function, Float a, Float b, int m) {
+        Float hparam = (b - a)/(3 * m);
+        Float sum = 0.0f;
+        for (int i = 0; i < m; i++) {
+            sum += function.getValue(a+hparam*((3*i)-3));
+            sum += function.getValue(a+hparam*((3*i)-2));
+            sum += function.getValue(a+hparam*((3*i)-1));
+            sum += function.getValue(a+hparam*3*i);
         }
-        return -1.0f;
+        sum *= 3.0f*hparam/8.0f;
+        return sum;
     }
 
     private void updateMargin() {
@@ -189,8 +179,11 @@ public class KernelDensityEstimator {
     public Float getDistanceFromKDE(final KernelDensityEstimator target) {
         Float a = Math.min(this.getMin(), target.getMin());
         Float b = Math.max(this.getMax(), target.getMax());
+        final KernelDensityEstimator source = this;
+        int points = (int)((b - a) / 5);
+        points = (points % 3 == 0)?points / 3:(points / 3)+1;
         return this.integrate(new Integrable() { public Float getValue(Float x) {
-            return Math.abs(this.getValue(x) - target.getValue(x));
-        } }, a, b);
+            return Math.abs(source.getValue(x) - target.getValue(x));
+        } }, a, b, points);
     }
 }
