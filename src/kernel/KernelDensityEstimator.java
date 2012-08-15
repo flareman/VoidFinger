@@ -24,6 +24,7 @@ public class KernelDensityEstimator {
     private Float margin = 1.0f;
     private Boolean optimalBandwidth = false;
     private ArrayList<Float> values = new ArrayList<Float>();
+    private String name = "";
     
     private void optimizeBandwidth() {
         if (this.values.isEmpty()) return;
@@ -76,15 +77,27 @@ public class KernelDensityEstimator {
         }
     }
     
-    public KernelDensityEstimator(int type) {
+    private Float getMin() {
+        if (this.values.isEmpty()) return 0.0f;
+        return this.values.get(0) - this.margin;
+    }
+    
+    private Float getMax() {
+        if (this.values.isEmpty()) return 0.0f;
+        return this.values.get(this.values.size()-1) + this.margin;
+    }
+
+    public KernelDensityEstimator(String name, int type) {
         if (type < 0 || type > KDE_MAX_TYPE) throw new IllegalArgumentException();
+        if (name == null || name.equals("")) throw new IllegalArgumentException();
         this.kernel = type;
         this.updateMargin();
         this.optimalBandwidth = true;
     }
     
-    public KernelDensityEstimator(int type, float bandwidth) {
+    public KernelDensityEstimator(String name, int type, float bandwidth) {
         if (type < 0 || type > KDE_MAX_TYPE) throw new IllegalArgumentException();
+        if (name == null || name.equals("")) throw new IllegalArgumentException();
         if (Float.compare(bandwidth, 0.0f) <= 0) throw new IllegalArgumentException();
         this.kernel = type;
         this.updateMargin();
@@ -92,16 +105,16 @@ public class KernelDensityEstimator {
         this.optimalBandwidth = false;
     }
 
-    public static KernelDensityEstimator generateEstimatorFromValues(int type, float bandwidth, Collection<Float>coll) {
+    public static KernelDensityEstimator generateEstimatorFromValues(String name, int type, float bandwidth, Collection<Float>coll) {
         if (coll == null) throw new NullPointerException();
-        KernelDensityEstimator result = new KernelDensityEstimator(type, bandwidth);
+        KernelDensityEstimator result = new KernelDensityEstimator(name, type, bandwidth);
         result.addAll(coll);
         return result;
     }
 
-    public static KernelDensityEstimator generateEstimatorFromValues(int type, Collection<Float>coll) {
+    public static KernelDensityEstimator generateEstimatorFromValues(String name, int type, Collection<Float>coll) {
         if (coll == null) throw new NullPointerException();
-        KernelDensityEstimator result = new KernelDensityEstimator(type);
+        KernelDensityEstimator result = new KernelDensityEstimator(name, type);
         result.addAll(coll);
         return result;
     }
@@ -129,19 +142,12 @@ public class KernelDensityEstimator {
         return sum/(this.n*this.h);
     }
     
-    private Float getMin() {
-        if (this.values.isEmpty()) return 0.0f;
-        return this.values.get(0) - this.margin;
-    }
-    
-    private Float getMax() {
-        if (this.values.isEmpty()) return 0.0f;
-        return this.values.get(this.values.size()-1) + this.margin;
-    }
+    public String getName() { return this.name; }
 
-    public void writeEstimatorToFile(String filename) throws IOException {
+    public void writeEstimatorToFile() throws IOException {
         if (this.values.isEmpty()) return;
-        PrintWriter out = new PrintWriter(new FileWriter(filename));
+        PrintWriter out = new PrintWriter(new FileWriter(this.name+".kde"));
+        out.println(this.name);
         out.println(this.kernel);
         if (this.optimalBandwidth) out.println("-1");
         else out.println(this.h);
@@ -152,6 +158,7 @@ public class KernelDensityEstimator {
 
     public static KernelDensityEstimator readEstimatorFromFile(String filename) throws IOException {
         BufferedReader input = new BufferedReader(new FileReader(filename));
+        String name = input.readLine();
         int kernel = Integer.parseInt(input.readLine());
         float bandwidth = Float.parseFloat(input.readLine());
         boolean optimal = (bandwidth < 0.0f)?true:false;
@@ -160,14 +167,14 @@ public class KernelDensityEstimator {
         for (int i = 0; i < count; i++)
             values.add(Float.parseFloat(input.readLine()));
         input.close();
-        if (optimal) return generateEstimatorFromValues(kernel, values);
-        else return generateEstimatorFromValues(kernel, bandwidth, values);
+        if (optimal) return generateEstimatorFromValues(name, kernel, values);
+        else return generateEstimatorFromValues(name, kernel, bandwidth, values);
     }
     
-    public void writeApproximateCurveToFile(String filename, int steps) throws IOException {
+    public void writeApproximateCurveToFile(int steps) throws IOException {
         if (steps < 1) throw new IllegalArgumentException();
         if (this.values.isEmpty()) return;
-        PrintWriter out = new PrintWriter(new FileWriter(filename));
+        PrintWriter out = new PrintWriter(new FileWriter(this.name+".txt"));
         out.println(this.getMin());
         out.println(this.getMax());
         Float increment = (this.getMax() - this.getMin())/steps;

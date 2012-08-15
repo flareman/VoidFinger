@@ -121,7 +121,7 @@ public class VoidFinger {
                 System.out.println("done");
                 System.out.println(result.size()+" inner distances calculated.");
                 System.out.print("Building kernel density estimator... ");
-                KernelDensityEstimator estimator = KernelDensityEstimator.generateEstimatorFromValues(KernelDensityEstimator.KDE_GAUSSIAN, result);
+                KernelDensityEstimator estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
                 this.estimators.add(estimator);
                 System.out.println("done");
                 System.out.println("KDE added to list.");
@@ -131,7 +131,7 @@ public class VoidFinger {
                 Graph graph = new Graph(fce.getClusterCenters(this.potentials), this.octree, this.threads);
                 graph.buildVisibilityGraph();
                 ArrayList<Float> result = graph.getInnerDistances();
-                KernelDensityEstimator estimator = KernelDensityEstimator.generateEstimatorFromValues(KernelDensityEstimator.KDE_GAUSSIAN, result);
+                KernelDensityEstimator estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
                 this.estimators.add(estimator);
                 System.out.println(passes+"-pass filtering, "+graph.totalEdges+" edges, "+result.size()+" IDs.");
                 System.out.println("KDE added to list.");
@@ -172,8 +172,8 @@ public class VoidFinger {
     public void saveKDEToFiles(int id) {
         if (id < 0 || id > this.estimators.size()-1) throw new IllegalArgumentException();
         try {
-            this.estimators.get(id).writeEstimatorToFile(this.filename+".kde.txt");
-            this.estimators.get(id).writeApproximateCurveToFile(this.filename+".plot.txt", this.steps);
+            this.estimators.get(id).writeEstimatorToFile();
+            this.estimators.get(id).writeApproximateCurveToFile(this.steps);
         } catch (IOException ioe) {}
     }
     
