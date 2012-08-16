@@ -14,6 +14,8 @@ import kdtree.KDTreeCellException;
 import potential.EPArray;
 
 public class FilterClusterEngine {
+    public static final int MAX_PASS = 30;
+    
     private KDTree kdtree;
     private Integer count = 0;
     private Integer repetitions = 0;
@@ -98,6 +100,7 @@ public class FilterClusterEngine {
                 convergedCenters++;
             if (convergedCenters >= this.centers.size() - 2) return true;
         }
+        System.out.println(convergedCenters);
         return false;
     }
 

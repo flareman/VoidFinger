@@ -39,67 +39,55 @@ public class VoidFinger {
     public int getRuns() { return this.runs; }
     public int getSelectedKDEID() { return this.medianID; }
     
-    public VoidFinger(String filename, Integer centers, Integer threads, Integer steps, Integer runs, boolean verbose) {
-        try {
-            this.time = System.nanoTime();
-            if (filename == null || filename.equals(""))
-                throw new IllegalArgumentException("You must specify a PDB ID");
-            if (centers == null || centers < 1)
-                throw new IllegalArgumentException("The clustering centers must be at least one");
-            if (steps == null || steps < 1)
-                throw new IllegalArgumentException("The sampling steps must be at least one");
-            if (runs == null || runs < 1)
-                throw new IllegalArgumentException("The runs must be an odd positive integer");
-            if (runs % 2 == 0)
-                throw new IllegalArgumentException("The runs must be an odd positive integer");
-            if (threads == null || threads < 1)
-                throw new IllegalArgumentException("This program run on less than one thread");
-            this.threads = threads;
-            this.steps = steps;
-            this.runs = runs;
-            this.verbose = verbose;
-            this.filename = filename;
-            this.centers = centers;
-            System.out.println("VoidFinger: Volumetric Inner Distance Fingerprinting Utility");
-            System.out.println("(c) 2012 Spyridon Smparounis, George Papakyriakopoulos");
-            System.out.println("National and Kapodistrian University of Athens");
-            System.out.println("Department of Informatics and Telecommunications");
-            System.out.println();
-            System.out.println("PDB ID:\t\t"+filename);
-            System.out.println("# of centers:\t"+centers);
-            System.out.println("# of threads:\t"+threads);
-            System.out.println("Sampling steps:\t"+steps);
-            System.out.println("# of runs:\t"+runs);
-            System.out.println();
-            if (verbose) {
-                System.out.print("Parsing molecular octree from file... ");
-                this.octree = Octree.parseFromFile(filename+".sog");
-                System.out.println("done");
-                System.out.print("Building kd-tree... ");
-                this.kdtree = new KDTree(this.octree);
-                System.out.println("Created a kd-tree with depth " + this.kdtree.getMaxDepth()+" and "+this.kdtree.getPointCount()+" points.");
-                System.out.print("Parsing electrostatic potentials from file... ");
-                this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.kdtree.getThreshold());
-                System.out.println("done");
-            } else {
-                System.out.print("Preparing for runs... ");
-                this.octree = Octree.parseFromFile(filename+".sog");
-                this.kdtree = new KDTree(this.octree);
-                this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.kdtree.getThreshold());
-                System.out.println("ready");
-            }
-        } catch (IllegalArgumentException iae) {
-            System.out.println(iae.getLocalizedMessage());
-        } catch (FileNotFoundException fe) {
-            System.out.println("File "+filename+" not found; you may have mistyped the filename.");
-        } catch (IOException ioe) {
-            System.out.println("An error occured when reading/writing to the disk; please, try again.");
-        } catch (OctreeException oe) {
-            System.out.println(oe.getLocalizedMessage());
-        } catch (KDTreeException kdte) {
-            System.out.println(kdte.getLocalizedMessage());
-        } catch (EPArrayException epae) {
-            System.out.println(epae.getLocalizedMessage());
+    public VoidFinger(String filename, Integer centers, Integer threads,
+            Integer steps, Integer runs, boolean verbose) throws FileNotFoundException,
+            IOException, OctreeException, KDTreeException, EPArrayException {
+        this.time = System.nanoTime();
+        if (filename == null || filename.equals(""))
+            throw new IllegalArgumentException("You must specify a PDB ID");
+        if (centers == null || centers < 1)
+            throw new IllegalArgumentException("The clustering centers must be at least one");
+        if (steps == null || steps < 1)
+            throw new IllegalArgumentException("The sampling steps must be at least one");
+        if (runs == null || runs < 1)
+            throw new IllegalArgumentException("The runs must be an odd positive integer");
+        if (runs % 2 == 0)
+            throw new IllegalArgumentException("The runs must be an odd positive integer");
+        if (threads == null || threads < 1)
+            throw new IllegalArgumentException("This program run on less than one thread");
+        this.threads = threads;
+        this.steps = steps;
+        this.runs = runs;
+        this.verbose = verbose;
+        this.filename = filename;
+        this.centers = centers;
+        System.out.println("VoidFinger: Volumetric Inner Distance Fingerprinting Utility");
+        System.out.println("(c) 2012 Spyridon Smparounis, George Papakyriakopoulos");
+        System.out.println("National and Kapodistrian University of Athens");
+        System.out.println("Department of Informatics and Telecommunications");
+        System.out.println();
+        System.out.println("PDB ID:\t\t"+filename);
+        System.out.println("# of centers:\t"+centers);
+        System.out.println("# of threads:\t"+threads);
+        System.out.println("Sampling steps:\t"+steps);
+        System.out.println("# of runs:\t"+runs);
+        System.out.println();
+        if (verbose) {
+            System.out.print("Parsing molecular octree from file... ");
+            this.octree = Octree.parseFromFile(filename+".sog");
+            System.out.println("done");
+            System.out.print("Building kd-tree... ");
+            this.kdtree = new KDTree(this.octree);
+            System.out.println("Created a kd-tree with depth " + this.kdtree.getMaxDepth()+" and "+this.kdtree.getPointCount()+" points.");
+            System.out.print("Parsing electrostatic potentials from file... ");
+            this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.kdtree.getThreshold());
+            System.out.println("done");
+        } else {
+            System.out.print("Preparing for runs... ");
+            this.octree = Octree.parseFromFile(filename+".sog");
+            this.kdtree = new KDTree(this.octree);
+            this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.kdtree.getThreshold());
+            System.out.println("ready");
         }
     }
     
@@ -109,7 +97,7 @@ public class VoidFinger {
                 FilterClusterEngine fce = new FilterClusterEngine(this.kdtree, this.centers);
                 System.out.println("Filtering engine is ready.");
                 System.out.print("Filtering kd-tree... ");
-                int passes = fce.performClustering();
+                int passes = fce.performClustering(FilterClusterEngine.MAX_PASS);
                 System.out.println("done after "+passes+" passes");
                 Graph graph = new Graph(fce.getClusterCenters(this.potentials), this.octree, this.threads);
                 System.out.print("Building visibility graph... ");
@@ -185,22 +173,35 @@ public class VoidFinger {
             System.out.println("java VoidFinger [PDB code] [centers] [threads] [sample steps] [passes] <verbose>");
             return;
         }
-        boolean verbose = false;
-        if (args.length == 6 && args[5].equalsIgnoreCase("verbose")) verbose = true;
-        VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), verbose);
-        for (int i = 1; i <= theFinger.getRuns(); i++) {
+        boolean verbose = (args.length == 6 && args[5].equalsIgnoreCase("verbose"))?true:false;
+        try {
+            VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), verbose);
+            for (int i = 1; i <= theFinger.getRuns(); i++) {
+                System.out.println();
+                System.out.println("PASS "+i+" OF "+theFinger.getRuns()+":");
+                System.out.println("=============");
+                theFinger.performAnalysis();
+            }
             System.out.println();
-            System.out.println("PASS "+i+" OF "+theFinger.getRuns()+":");
-            System.out.println("=============");
-            theFinger.performAnalysis();
+            System.out.print("Selecting median KDE... ");
+            theFinger.selectMedianKDE();
+            System.out.println("done");
+            System.out.print("Saving KDE and plot to file... ");
+            theFinger.saveKDEToFiles(theFinger.getSelectedKDEID());
+            System.out.println("done");
+            System.out.println("Total running time: "+theFinger.getElapsedSeconds()+" sec.");
+        } catch (IllegalArgumentException iae) {
+            System.out.println(iae.getLocalizedMessage());
+        } catch (FileNotFoundException fe) {
+            System.out.println("File "+args[0]+" not found; you may have mistyped the filename.");
+        } catch (IOException ioe) {
+            System.out.println("An error occured when reading/writing to the disk; please, try again.");
+        } catch (OctreeException oe) {
+            System.out.println(oe.getLocalizedMessage());
+        } catch (KDTreeException kdte) {
+            System.out.println(kdte.getLocalizedMessage());
+        } catch (EPArrayException epae) {
+            System.out.println(epae.getLocalizedMessage());
         }
-        System.out.println();
-        System.out.print("Selecting median KDE... ");
-        theFinger.selectMedianKDE();
-        System.out.println("done");
-        System.out.print("Saving KDE and plot to file... ");
-        theFinger.saveKDEToFiles(theFinger.getSelectedKDEID());
-        System.out.println("done");
-        System.out.println("Total running time: "+theFinger.getElapsedSeconds()+" sec.");
     }
 }
