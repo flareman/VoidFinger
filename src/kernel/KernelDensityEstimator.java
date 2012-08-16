@@ -177,6 +177,7 @@ public class KernelDensityEstimator {
         if (steps < 1) throw new IllegalArgumentException();
         if (this.values.isEmpty()) return;
         PrintWriter out = new PrintWriter(new FileWriter(this.name+".txt"));
+        out.println(this.name);
         out.println(this.getMin());
         out.println(this.getMax());
         Float increment = (this.getMax() - this.getMin())/steps;
