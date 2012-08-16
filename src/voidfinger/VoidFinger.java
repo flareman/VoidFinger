@@ -20,7 +20,6 @@ import visibilityGraph.GraphException;
 public class VoidFinger {
     private long time = 0;
     private int threads = 1;
-    private int steps = 1;
     private int runs = 1;
     private int centers = 100;
     private boolean verbose = false;
@@ -40,15 +39,13 @@ public class VoidFinger {
     public int getSelectedKDEID() { return this.medianID; }
     
     public VoidFinger(String filename, Integer centers, Integer threads,
-            Integer steps, Integer runs, boolean verbose) throws FileNotFoundException,
+            Integer runs, boolean verbose) throws FileNotFoundException,
             IOException, OctreeException, KDTreeException, EPArrayException {
         this.time = System.nanoTime();
         if (filename == null || filename.equals(""))
             throw new IllegalArgumentException("You must specify a PDB ID");
         if (centers == null || centers < 1)
             throw new IllegalArgumentException("The clustering centers must be at least one");
-        if (steps == null || steps < 1)
-            throw new IllegalArgumentException("The sampling steps must be at least one");
         if (runs == null || runs < 1)
             throw new IllegalArgumentException("The runs must be an odd positive integer");
         if (runs % 2 == 0)
@@ -56,7 +53,6 @@ public class VoidFinger {
         if (threads == null || threads < 1)
             throw new IllegalArgumentException("This program run on less than one thread");
         this.threads = threads;
-        this.steps = steps;
         this.runs = runs;
         this.verbose = verbose;
         this.filename = filename;
@@ -69,7 +65,6 @@ public class VoidFinger {
         System.out.println("PDB ID:\t\t"+filename);
         System.out.println("# of centers:\t"+centers);
         System.out.println("# of threads:\t"+threads);
-        System.out.println("Sampling steps:\t"+steps);
         System.out.println("# of runs:\t"+runs);
         System.out.println();
         if (verbose) {
@@ -161,21 +156,21 @@ public class VoidFinger {
         if (id < 0 || id > this.estimators.size()-1) throw new IllegalArgumentException();
         try {
             this.estimators.get(id).writeEstimatorToFile();
-            this.estimators.get(id).writeApproximateCurveToFile(this.steps);
+            this.estimators.get(id).writeApproximateCurveToFile();
         } catch (IOException ioe) {}
     }
     
     public static void main(String[] args) {
         System.out.println();
-        if (args.length < 5) {
+        if (args.length < 4) {
             System.out.println("Invalid argument count.");
             System.out.println("Proper syntax is:");
-            System.out.println("java VoidFinger [PDB code] [centers] [threads] [sample steps] [passes] <verbose>");
+            System.out.println("java VoidFinger [PDB code] [centers] [threads] [passes] <verbose>");
             return;
         }
-        boolean verbose = (args.length == 6 && args[5].equalsIgnoreCase("verbose"))?true:false;
+        boolean verbose = (args.length == 5 && args[4].equalsIgnoreCase("verbose"))?true:false;
         try {
-            VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), Integer.parseInt(args[4]), verbose);
+            VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), verbose);
             for (int i = 1; i <= theFinger.getRuns(); i++) {
                 System.out.println();
                 System.out.println("PASS "+i+" OF "+theFinger.getRuns()+":");

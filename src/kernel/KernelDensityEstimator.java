@@ -15,6 +15,7 @@ public class KernelDensityEstimator {
     public static final int KDE_TRIANGULAR = 2;
     public static final int KDE_RECTANGULAR = 3;
     private static final int KDE_MAX_TYPE = 3;
+    private static final float KDE_APPROX_CURVE_RESOLUTION = 0.005f;
             
     private interface Integrable { public Float getValue(Float x); }
 
@@ -173,16 +174,17 @@ public class KernelDensityEstimator {
         else return generateEstimatorFromValues(name, kernel, bandwidth, values);
     }
     
-    public void writeApproximateCurveToFile(int steps) throws IOException {
-        if (steps < 1) throw new IllegalArgumentException();
+    public void writeApproximateCurveToFile() throws IOException {
         if (this.values.isEmpty()) return;
         PrintWriter out = new PrintWriter(new FileWriter(this.name+".txt"));
         out.println(this.name);
         out.println(this.getMin());
         out.println(this.getMax());
-        Float increment = (this.getMax() - this.getMin())/steps;
-        for (Float f = this.getMin(); f < this.getMax() + increment; f += increment)
-            out.println(this.getValue(f));
+        out.println(KDE_APPROX_CURVE_RESOLUTION);
+        int steps = (int)((this.getMax() - this.getMin()) / KDE_APPROX_CURVE_RESOLUTION) + 1;
+        out.println(steps);
+        for (int i = 0; i < steps; i++)
+            out.println(this.getValue(this.getMin()+i*KDE_APPROX_CURVE_RESOLUTION));
         out.close();
     }
     
