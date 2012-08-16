@@ -91,6 +91,7 @@ public class KernelDensityEstimator {
         if (type < 0 || type > KDE_MAX_TYPE) throw new IllegalArgumentException();
         if (name == null || name.equals("")) throw new IllegalArgumentException();
         this.kernel = type;
+        this.name = name;
         this.updateMargin();
         this.optimalBandwidth = true;
     }
@@ -100,6 +101,7 @@ public class KernelDensityEstimator {
         if (name == null || name.equals("")) throw new IllegalArgumentException();
         if (Float.compare(bandwidth, 0.0f) <= 0) throw new IllegalArgumentException();
         this.kernel = type;
+        this.name = name;
         this.updateMargin();
         this.h = bandwidth;
         this.optimalBandwidth = false;
