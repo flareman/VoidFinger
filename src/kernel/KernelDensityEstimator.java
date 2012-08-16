@@ -15,7 +15,7 @@ public class KernelDensityEstimator {
     public static final int KDE_TRIANGULAR = 2;
     public static final int KDE_RECTANGULAR = 3;
     private static final int KDE_MAX_TYPE = 3;
-    private static final float KDE_APPROX_CURVE_RESOLUTION = 0.005f;
+    private static final float KDE_APPROX_CURVE_RESOLUTION = 0.5f;
             
     private interface Integrable { public Float getValue(Float x); }
 
