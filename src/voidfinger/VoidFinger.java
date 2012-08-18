@@ -1,13 +1,13 @@
 package voidfinger;
 
-import filter.FCEException;
-import filter.FilterClusterEngine;
+import geometry.GeometryException;
+import geometry.Point;
+import java.io.BufferedReader;
 import java.io.FileNotFoundException;
+import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collections;
-import kdtree.KDTree;
-import kdtree.KDTreeException;
 import kernel.KDEDistance;
 import kernel.KernelDensityEstimator;
 import octree.Octree;
@@ -21,12 +21,11 @@ public class VoidFinger {
     private long time = 0;
     private int threads = 1;
     private int runs = 1;
-    private int centers = 100;
     private boolean verbose = false;
     private String filename;
     private Octree octree = null;
-    private KDTree kdtree = null;
     private EPArray potentials = null;
+    private ArrayList<Point> centers = null;
     private ArrayList<KernelDensityEstimator> estimators = new ArrayList<KernelDensityEstimator>();
     private int medianID = -1;
 
@@ -38,14 +37,12 @@ public class VoidFinger {
     public int getRuns() { return this.runs; }
     public int getSelectedKDEID() { return this.medianID; }
     
-    public VoidFinger(String filename, Integer centers, Integer threads,
+    public VoidFinger(String filename, Integer threads,
             Integer runs, boolean verbose) throws FileNotFoundException,
-            IOException, OctreeException, KDTreeException, EPArrayException {
+            IOException, OctreeException, EPArrayException {
         this.time = System.nanoTime();
         if (filename == null || filename.equals(""))
             throw new IllegalArgumentException("You must specify a PDB ID");
-        if (centers == null || centers < 1)
-            throw new IllegalArgumentException("The clustering centers must be at least one");
         if (runs == null || runs < 1)
             throw new IllegalArgumentException("The runs must be an odd positive integer");
         if (runs % 2 == 0)
@@ -56,14 +53,12 @@ public class VoidFinger {
         this.runs = runs;
         this.verbose = verbose;
         this.filename = filename;
-        this.centers = centers;
         System.out.println("VoidFinger: Volumetric Inner Distance Fingerprinting Utility");
         System.out.println("(c) 2012 Spyridon Smparounis, George Papakyriakopoulos");
         System.out.println("National and Kapodistrian University of Athens");
         System.out.println("Department of Informatics and Telecommunications");
         System.out.println();
         System.out.println("PDB ID:\t\t"+filename);
-        System.out.println("# of centers:\t"+centers);
         System.out.println("# of threads:\t"+threads);
         System.out.println("# of runs:\t"+runs);
         System.out.println();
@@ -71,30 +66,21 @@ public class VoidFinger {
             System.out.print("Parsing molecular octree from file... ");
             this.octree = Octree.parseFromFile(filename+".sog");
             System.out.println("done");
-            System.out.print("Building kd-tree... ");
-            this.kdtree = new KDTree(this.octree);
-            System.out.println("Created a kd-tree with depth " + this.kdtree.getMaxDepth()+" and "+this.kdtree.getPointCount()+" points.");
             System.out.print("Parsing electrostatic potentials from file... ");
-            this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.kdtree.getThreshold());
+            this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.octree.getMinNodeLength());
             System.out.println("done");
         } else {
             System.out.print("Preparing for runs... ");
             this.octree = Octree.parseFromFile(filename+".sog");
-            this.kdtree = new KDTree(this.octree);
-            this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.kdtree.getThreshold());
+            this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.octree.getMinNodeLength());
             System.out.println("ready");
         }
     }
     
-    public void performAnalysis() {
+    public void performAnalysis() throws IOException {
         try {
             if (verbose) {
-                FilterClusterEngine fce = new FilterClusterEngine(this.kdtree, this.centers);
-                System.out.println("Filtering engine is ready.");
-                System.out.print("Filtering kd-tree... ");
-                int passes = fce.performClustering(FilterClusterEngine.MAX_PASS);
-                System.out.println("done after "+passes+" passes");
-                Graph graph = new Graph(fce.getClusterCenters(this.potentials), this.octree, this.threads);
+                Graph graph = new Graph(this.getClusterCenters(this.filename+".cluster"), this.octree, this.threads);
                 System.out.print("Building visibility graph... ");
                 graph.buildVisibilityGraph();
                 System.out.println("done");
@@ -109,18 +95,16 @@ public class VoidFinger {
                 System.out.println("done");
                 System.out.println("KDE added to list.");
             } else {
-                FilterClusterEngine fce = new FilterClusterEngine(this.kdtree, this.centers);
-                int passes = fce.performClustering();
-                Graph graph = new Graph(fce.getClusterCenters(this.potentials), this.octree, this.threads);
+                Graph graph = new Graph(this.getClusterCenters(this.filename+".cluster"), this.octree, this.threads);
                 graph.buildVisibilityGraph();
                 ArrayList<Float> result = graph.getInnerDistances();
                 KernelDensityEstimator estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
                 this.estimators.add(estimator);
-                System.out.println(passes+"-pass filtering, "+graph.totalEdges+" edges, "+result.size()+" IDs.");
+                System.out.println(graph.totalEdges+" edges, "+result.size()+" IDs.");
                 System.out.println("KDE added to list.");
             }
         } catch (GraphException ge) {
-        } catch (FCEException fcee) {}
+        }
     }
     
     public void selectMedianKDE() {
@@ -160,17 +144,36 @@ public class VoidFinger {
         } catch (IOException ioe) {}
     }
     
+    public ArrayList<Point> getClusterCenters(String filename) throws IOException {
+        if (filename == null || filename.equals("")) throw new IllegalArgumentException();
+        ArrayList<Point> result = new ArrayList<Point>();
+        BufferedReader input = new BufferedReader(new FileReader(filename));
+        String line;
+        while ((line = input.readLine()) != null) {
+            String[] tokens = line.split("\t");
+            if (tokens.length != 3) throw new IllegalArgumentException("Invalid cluster center file syntax");
+            Float[] coords = new Float[4];
+            coords[0] = Float.parseFloat(tokens[0]);
+            coords[1] = Float.parseFloat(tokens[1]);
+            coords[2] = Float.parseFloat(tokens[2]);
+            coords[3] = this.potentials.getPotentialForCoordinates(coords[0], coords[1], coords[2]);
+            try { result.add(new Point(coords)); } catch (GeometryException ge) {}
+        }            
+        input.close();
+        return result;
+    }
+    
     public static void main(String[] args) {
         System.out.println();
         if (args.length < 4) {
             System.out.println("Invalid argument count.");
             System.out.println("Proper syntax is:");
-            System.out.println("java VoidFinger [PDB code] [centers] [threads] [passes] <verbose>");
+            System.out.println("java VoidFinger [PDB code] [threads] [passes] <verbose>");
             return;
         }
         boolean verbose = (args.length == 5 && args[4].equalsIgnoreCase("verbose"))?true:false;
         try {
-            VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), Integer.parseInt(args[3]), verbose);
+            VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), verbose);
             for (int i = 1; i <= theFinger.getRuns(); i++) {
                 System.out.println();
                 System.out.println("PASS "+i+" OF "+theFinger.getRuns()+":");
@@ -193,8 +196,6 @@ public class VoidFinger {
             System.out.println("An error occured when reading/writing to the disk; please, try again.");
         } catch (OctreeException oe) {
             System.out.println(oe.getLocalizedMessage());
-        } catch (KDTreeException kdte) {
-            System.out.println(kdte.getLocalizedMessage());
         } catch (EPArrayException epae) {
             System.out.println(epae.getLocalizedMessage());
         }
