@@ -7,8 +7,6 @@ import java.io.FileNotFoundException;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
-import java.util.Collections;
-import kernel.KDEDistance;
 import kernel.KernelDensityEstimator;
 import octree.Octree;
 import octree.OctreeException;
@@ -20,37 +18,27 @@ import visibilityGraph.GraphException;
 public final class VoidFinger {
     private long time = 0;
     private int threads = 1;
-    private int runs = 1;
     private boolean verbose = false;
     private String filename;
     private Octree octree = null;
     private EPArray potentials = null;
     private ArrayList<Point> centers = null;
-    private ArrayList<KernelDensityEstimator> estimators = new ArrayList<KernelDensityEstimator>();
+    private KernelDensityEstimator estimator = null;
     private int medianID = -1;
 
     public int getElapsedSeconds() {
         this.time = System.nanoTime() - this.time;
         return (int)(this.time/1000000000);
     }
-
-    public int getRuns() { return this.runs; }
-    public int getSelectedKDEID() { return this.medianID; }
     
-    public VoidFinger(String filename, Integer threads,
-            Integer runs, boolean verbose) throws FileNotFoundException,
-            IOException, OctreeException, EPArrayException {
+    public VoidFinger(String filename, Integer threads, boolean verbose)
+            throws FileNotFoundException, IOException, OctreeException, EPArrayException {
         this.time = System.nanoTime();
         if (filename == null || filename.equals(""))
             throw new IllegalArgumentException("You must specify a PDB ID");
-        if (runs == null || runs < 1)
-            throw new IllegalArgumentException("The runs must be an odd positive integer");
-        if (runs % 2 == 0)
-            throw new IllegalArgumentException("The runs must be an odd positive integer");
         if (threads == null || threads < 1)
             throw new IllegalArgumentException("This program run on less than one thread");
         this.threads = threads;
-        this.runs = runs;
         this.verbose = verbose;
         this.filename = filename;
         System.out.println("VoidFinger: Volumetric Inner Distance Fingerprinting Utility");
@@ -60,7 +48,6 @@ public final class VoidFinger {
         System.out.println();
         System.out.println("PDB ID:\t\t"+filename);
         System.out.println("# of threads:\t"+threads);
-        System.out.println("# of runs:\t"+runs);
         System.out.println();
         if (verbose) {
             System.out.print("Parsing molecular octree from file... ");
@@ -93,57 +80,24 @@ public final class VoidFinger {
                 System.out.println("done");
                 System.out.println(result.size()+" inner distances calculated.");
                 System.out.print("Building kernel density estimator... ");
-                KernelDensityEstimator estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
-                this.estimators.add(estimator);
+                this.estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
                 System.out.println("done");
-                System.out.println("KDE added to list.");
             } else {
                 Graph graph = new Graph(this.centers, this.octree, this.threads);
                 graph.buildVisibilityGraph();
                 ArrayList<Float> result = graph.getInnerDistances();
-                KernelDensityEstimator estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
-                this.estimators.add(estimator);
+                this.estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
                 System.out.println(graph.totalEdges+" edges, "+result.size()+" IDs.");
-                System.out.println("KDE added to list.");
+                System.out.println("Kernel density estimator built.");
             }
         } catch (GraphException ge) {
         }
     }
-    
-    public void selectMedianKDE() {
-        ArrayList<KDEDistance> distances = new ArrayList<KDEDistance>();
-        for (int i = 0; i < this.estimators.size(); i++)
-            for (int j = i+1; j < this.estimators.size(); j++)
-                distances.add(new KDEDistance(i, j, this.estimators.get(i).getDistanceFromKDE(this.estimators.get(j))));
-        Collections.sort(distances);
-        int[] extremes = distances.get(0).getIDs();
-        Float diff = Float.POSITIVE_INFINITY;
-        for (int i = 0; i < this.estimators.size(); i++) {
-            if (i == extremes[0] || i == extremes[1]) continue;
-            Float left = Float.NEGATIVE_INFINITY;
-            Float right = Float.NEGATIVE_INFINITY;
-            Float temp = diff;
-            for (KDEDistance d: distances) {
-                if ((d.getAlpha() == i && d.getBeta() == extremes[0]) ||
-                        (d.getBeta() == i && d.getAlpha() == extremes[0]))
-                    left = d.getDistance();
-                if ((d.getAlpha() == i && d.getBeta() == extremes[1]) ||
-                        (d.getBeta() == i && d.getAlpha() == extremes[1]))
-                    right = d.getDistance();
-                if (!left.isInfinite() && !right.isInfinite()) {
-                    temp = Math.abs(left-right);
-                    break;
-                }
-            }
-            if (temp < diff) { diff = temp; this.medianID = i; }
-        }
-    }
-    
-    public void saveKDEToFiles(int id) {
-        if (id < 0 || id > this.estimators.size()-1) throw new IllegalArgumentException();
+        
+    public void saveKDEToFiles() {
         try {
-            this.estimators.get(id).writeEstimatorToFile();
-            this.estimators.get(id).writeApproximateCurveToFile();
+            this.estimator.writeEstimatorToFile();
+            this.estimator.writeApproximateCurveToFile();
         } catch (IOException ioe) {}
     }
     
@@ -170,27 +124,19 @@ public final class VoidFinger {
     
     public static void main(String[] args) {
         System.out.println();
-        if (args.length < 3) {
+        if (args.length < 2) {
             System.out.println("Invalid argument count.");
             System.out.println("Proper syntax is:");
-            System.out.println("java VoidFinger [PDB code] [threads] [passes] <verbose>");
+            System.out.println("java VoidFinger [PDB code] [threads] <verbose>");
             return;
         }
-        boolean verbose = (args.length == 4 && args[3].equalsIgnoreCase("verbose"))?true:false;
+        boolean verbose = (args.length == 3 && args[2].equalsIgnoreCase("verbose"))?true:false;
         try {
-            VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), verbose);
-            for (int i = 1; i <= theFinger.getRuns(); i++) {
-                System.out.println();
-                System.out.println("PASS "+i+" OF "+theFinger.getRuns()+":");
-                System.out.println("=============");
-                theFinger.performAnalysis();
-            }
+            VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), verbose);
+            theFinger.performAnalysis();
             System.out.println();
-            System.out.print("Selecting median KDE... ");
-            theFinger.selectMedianKDE();
-            System.out.println("done");
             System.out.print("Saving KDE and plot to file... ");
-            theFinger.saveKDEToFiles(theFinger.getSelectedKDEID());
+            theFinger.saveKDEToFiles();
             System.out.println("done");
             System.out.println("Total running time: "+theFinger.getElapsedSeconds()+" sec.");
         } catch (IllegalArgumentException iae) {
