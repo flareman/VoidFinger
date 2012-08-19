@@ -2,6 +2,8 @@ package voidfinger;
 
 import geometry.GeometryException;
 import geometry.Point;
+import histogram.Histogram;
+import histogram.HistogramException;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -22,9 +24,9 @@ public final class VoidFinger {
     private String filename;
     private Octree octree = null;
     private EPArray potentials = null;
+    private Histogram histogram = null;
     private ArrayList<Point> centers = null;
     private KernelDensityEstimator estimator = null;
-    private int medianID = -1;
 
     public int getElapsedSeconds() {
         this.time = System.nanoTime() - this.time;
@@ -80,6 +82,9 @@ public final class VoidFinger {
                 ArrayList<Float> result = graph.getInnerDistances();
                 System.out.println("done");
                 System.out.println(result.size()+" inner distances calculated.");
+                System.out.print("Building histogram... ");
+                this.histogram = Histogram.createFromCollection(128, result);
+                System.out.println("done");
                 System.out.print("Building kernel density estimator... ");
                 this.estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
                 System.out.println("done");
@@ -92,6 +97,7 @@ public final class VoidFinger {
                 System.out.println("Kernel density estimator built.");
             }
         } catch (GraphException ge) {
+        } catch (HistogramException ge) {
         }
     }
         
@@ -102,6 +108,12 @@ public final class VoidFinger {
         } catch (IOException ioe) {}
     }
     
+    public void saveHistogramToFile() {
+        try {
+            this.histogram.saveToFile(this.filename+".hist.txt");
+        } catch (IOException ioe) {}
+    }
+
     public ArrayList<Point> loadClusterCenters(String filename) throws IOException {
         if (filename == null || filename.equals("")) throw new IllegalArgumentException();
         ArrayList<Point> result = new ArrayList<Point>();
@@ -136,8 +148,9 @@ public final class VoidFinger {
             VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), verbose);
             theFinger.performAnalysis();
             System.out.println();
-            System.out.print("Saving KDE and plot to file... ");
+            System.out.print("Saving results to disk... ");
             theFinger.saveKDEToFiles();
+            theFinger.saveHistogramToFile();
             System.out.println("done");
             System.out.println("Total running time: "+theFinger.getElapsedSeconds()+" sec.");
         } catch (IllegalArgumentException iae) {
