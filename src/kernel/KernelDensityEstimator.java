@@ -176,7 +176,7 @@ public class KernelDensityEstimator {
     
     public void writeApproximateCurveToFile() throws IOException {
         if (this.values.isEmpty()) return;
-        PrintWriter out = new PrintWriter(new FileWriter(this.name+".txt"));
+        PrintWriter out = new PrintWriter(new FileWriter(this.name+".kde.txt"));
         out.println(this.name);
         out.println(this.getMin());
         out.println(this.getMax());
