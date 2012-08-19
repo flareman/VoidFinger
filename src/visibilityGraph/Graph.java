@@ -40,12 +40,18 @@ public class Graph {
     private void recurseGetOctreeLeafs(Point origin, Vector ray, ArrayList<Point> visible, OctNode root) throws GeometryException {
         if (root.getBoundingBox().intersectWithRay(ray, origin, false))
             try {
-                if (root.getNodeType() == OctNode.OCTNODE_LEAF)
-                    visible.add(root.getPoint());
-                if (root.getNodeType() == OctNode.OCTNODE_INTERMEDIATE) {
-                    ArrayList<OctNode> children = root.getChildren();
-                    for (OctNode n: children)
-                        recurseGetOctreeLeafs(origin, ray, visible, n);
+                switch (root.getNodeType()) {
+                    case OctNode.OCTNODE_EMPTY: return;
+                    case OctNode.OCTNODE_LEAF:
+                        if (ray.distanceFromPoint(root.getPoint().transposedPoint(origin.symmetricPoint()))
+                                <= Math.sqrt(3.0f)*this.surface.getMinNodeLength())
+                            visible.add(root.getPoint());
+                        break;
+                    case OctNode.OCTNODE_INTERMEDIATE:
+                        for (OctNode n: root.getChildren())
+                            recurseGetOctreeLeafs(origin, ray, visible, n);
+                        break;
+                    default:;
                 }
             } catch (OctNodeException one) {}
     }
