@@ -68,7 +68,7 @@ public class Graph {
         } catch (GeometryException ge) {}
         if (projections.isEmpty()) return;
         Collections.sort(projections);
-        Boolean visible = false;
+        Boolean visible;
         int clusterCount = 1;
         float D = this.surface.getMinNodeLength();
         float distance;
@@ -84,7 +84,7 @@ public class Graph {
                     visible = (this.surface.getSignForPointInSpace(this.nodes.get(i).getPoint().midpointFromPoint(this.nodes.get(j).getPoint())));
                     break;
                 case 3: visible = false; break;
-                default: break;
+                default: visible = false; break;
             }
 
             if (visible) {
