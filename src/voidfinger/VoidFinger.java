@@ -17,7 +17,7 @@ import potential.EPArrayException;
 import visibilityGraph.Graph;
 import visibilityGraph.GraphException;
 
-public class VoidFinger {
+public final class VoidFinger {
     private long time = 0;
     private int threads = 1;
     private int runs = 1;
@@ -69,6 +69,9 @@ public class VoidFinger {
             System.out.print("Parsing electrostatic potentials from file... ");
             this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.octree.getMinNodeLength());
             System.out.println("done");
+            System.out.print("Loading cluster centers from file and integrating potentials... ");
+            this.centers = this.loadClusterCenters(filename+".cluster");
+            System.out.println("done");
         } else {
             System.out.print("Preparing for runs... ");
             this.octree = Octree.parseFromFile(filename+".sog");
@@ -80,7 +83,7 @@ public class VoidFinger {
     public void performAnalysis() throws IOException {
         try {
             if (verbose) {
-                Graph graph = new Graph(this.getClusterCenters(this.filename+".cluster"), this.octree, this.threads);
+                Graph graph = new Graph(this.centers, this.octree, this.threads);
                 System.out.print("Building visibility graph... ");
                 graph.buildVisibilityGraph();
                 System.out.println("done");
@@ -95,7 +98,7 @@ public class VoidFinger {
                 System.out.println("done");
                 System.out.println("KDE added to list.");
             } else {
-                Graph graph = new Graph(this.getClusterCenters(this.filename+".cluster"), this.octree, this.threads);
+                Graph graph = new Graph(this.centers, this.octree, this.threads);
                 graph.buildVisibilityGraph();
                 ArrayList<Float> result = graph.getInnerDistances();
                 KernelDensityEstimator estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
@@ -144,12 +147,14 @@ public class VoidFinger {
         } catch (IOException ioe) {}
     }
     
-    public ArrayList<Point> getClusterCenters(String filename) throws IOException {
+    public ArrayList<Point> loadClusterCenters(String filename) throws IOException {
         if (filename == null || filename.equals("")) throw new IllegalArgumentException();
         ArrayList<Point> result = new ArrayList<Point>();
         BufferedReader input = new BufferedReader(new FileReader(filename));
         String line;
-        while ((line = input.readLine()) != null) {
+        while (input.ready()) {
+            line = input.readLine();
+            if (line.equals("")) continue;
             String[] tokens = line.split("\t");
             if (tokens.length != 3) throw new IllegalArgumentException("Invalid cluster center file syntax");
             Float[] coords = new Float[4];
@@ -165,13 +170,13 @@ public class VoidFinger {
     
     public static void main(String[] args) {
         System.out.println();
-        if (args.length < 4) {
+        if (args.length < 3) {
             System.out.println("Invalid argument count.");
             System.out.println("Proper syntax is:");
             System.out.println("java VoidFinger [PDB code] [threads] [passes] <verbose>");
             return;
         }
-        boolean verbose = (args.length == 5 && args[4].equalsIgnoreCase("verbose"))?true:false;
+        boolean verbose = (args.length == 4 && args[3].equalsIgnoreCase("verbose"))?true:false;
         try {
             VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Integer.parseInt(args[2]), verbose);
             for (int i = 1; i <= theFinger.getRuns(); i++) {
