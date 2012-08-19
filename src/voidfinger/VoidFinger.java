@@ -63,6 +63,7 @@ public final class VoidFinger {
             System.out.print("Preparing for runs... ");
             this.octree = Octree.parseFromFile(filename+".sog");
             this.potentials = EPArray.readArrayFromFile(filename+".pot.dx", this.octree.getMinNodeLength());
+            this.centers = this.loadClusterCenters(filename+".cluster");
             System.out.println("ready");
         }
     }
