@@ -38,13 +38,14 @@ public class Graph {
     public GraphNode getNode(int n) { return nodes.get(n); }
     
     private void recurseGetOctreeLeafs(Point origin, Vector ray, ArrayList<Point> visible, OctNode root) throws GeometryException {
-        if (root.getBoundingBox().intersectWithRay(ray, origin, false))
+        if (root.getBoundingBox().intersectWithRay(ray, origin, true))
             try {
                 switch (root.getNodeType()) {
                     case OctNode.OCTNODE_EMPTY: return;
                     case OctNode.OCTNODE_LEAF: visible.add(root.getPoint()); break;
                     case OctNode.OCTNODE_INTERMEDIATE:
-                        for (OctNode n: root.getChildren()) recurseGetOctreeLeafs(origin, ray, visible, n);
+                        for (OctNode n: root.getChildren())
+                            recurseGetOctreeLeafs(origin, ray, visible, n);
                         break;
                     default:;
                 }
@@ -67,17 +68,12 @@ public class Graph {
                 projections.add(ray.getProjection(v));
             }
         } catch (GeometryException ge) {}
-        if (projections.isEmpty()) return;
         Collections.sort(projections);
         Boolean visible;
         int clusterCount = 1;
-        float D = this.surface.getMinNodeLength();
-        float distance;
-        for (int k = 1; k < projections.size() && clusterCount < 3; k++) {
-            distance = projections.get(k) - projections.get(k-1);
-            if (distance > 1.5f*D)
+        for (int k = 1; k < projections.size() && clusterCount < 3; k++)
+            if (projections.get(k) - projections.get(k-1) > 2.5f*this.surface.getMinNodeLength())
                 clusterCount++;
-        }
         try {
             switch (clusterCount) {
                 case 1: visible = true; break;
