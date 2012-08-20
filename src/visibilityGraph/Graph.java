@@ -72,7 +72,7 @@ public class Graph {
         Boolean visible;
         int clusterCount = 1;
         for (int k = 1; k < projections.size() && clusterCount < 3; k++)
-            if (projections.get(k) - projections.get(k-1) > 2.5f*this.surface.getMinNodeLength())
+            if (projections.get(k) - projections.get(k-1) > 1.5f*this.surface.getMinNodeLength())
                 clusterCount++;
         try {
             switch (clusterCount) {
