@@ -67,6 +67,7 @@ public class Graph {
                 Vector v = new Vector(p);
                 projections.add(ray.getProjection(v));
             }
+            if (visibleList.isEmpty()) return;
         } catch (GeometryException ge) {}
         Collections.sort(projections);
         Boolean visible;
