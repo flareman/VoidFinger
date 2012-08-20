@@ -25,7 +25,7 @@ public class Histogram {
         this.count = n;
         this.bins = new Integer[this.count];
         Arrays.fill(this.bins, 0);
-        this.h = (max-min)/n;
+        this.h = 1.0f/n;
     }
     
     public Histogram(Integer n, Float min, Float max, Integer[] bins) throws HistogramException {
@@ -38,7 +38,7 @@ public class Histogram {
         this.min = min;
         this.max = max;
         this.count = n;
-        this.h = (max-min)/n;
+        this.h = 1.0f/n;
         this.bins = Arrays.copyOf(bins, this.count);
     }
 
@@ -48,8 +48,9 @@ public class Histogram {
             this.bins[count-1]++;
             return;
         }
+        Float temp = (p-this.min)/(this.max-this.min);
         for (int i = 0; i < this.count; i++)
-            if (p >= this.min + this.h*i && p < this.min + this.h*(i+1)) {
+            if (temp >= this.h*i && temp < this.h*(i+1)) {
                 this.bins[i]++;
                 return;
             }
