@@ -21,6 +21,7 @@ public final class VoidFinger {
     private long time = 0;
     private int threads = 1;
     private boolean verbose = false;
+    private float factor = 0.0f;
     private String filename;
     private Octree octree = null;
     private EPArray potentials = null;
@@ -33,7 +34,7 @@ public final class VoidFinger {
         return (int)(this.time/1000000000);
     }
     
-    public VoidFinger(String filename, Integer threads, boolean verbose)
+    public VoidFinger(String filename, Integer threads, float scaleFactor, boolean verbose)
             throws FileNotFoundException, IOException, OctreeException, EPArrayException {
         this.time = System.nanoTime();
         if (filename == null || filename.equals(""))
@@ -41,6 +42,7 @@ public final class VoidFinger {
         if (threads == null || threads < 1)
             throw new IllegalArgumentException("This program run on less than one thread");
         this.threads = threads;
+        this.factor = scaleFactor;
         this.verbose = verbose;
         this.filename = filename;
         System.out.println("VoidFinger: Volumetric Inner Distance Fingerprinting Utility");
@@ -73,7 +75,7 @@ public final class VoidFinger {
     public void performAnalysis() throws IOException {
         try {
             if (verbose) {
-                Graph graph = new Graph(this.centers, this.octree, this.threads);
+                Graph graph = new Graph(this.centers, this.octree, this.threads, this.factor);
                 System.out.print("Building visibility graph... ");
                 graph.buildVisibilityGraph();
                 System.out.println("done");
@@ -89,7 +91,7 @@ public final class VoidFinger {
                 this.estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
                 System.out.println("done");
             } else {
-                Graph graph = new Graph(this.centers, this.octree, this.threads);
+                Graph graph = new Graph(this.centers, this.octree, this.threads, this.factor);
                 graph.buildVisibilityGraph();
                 ArrayList<Float> result = graph.getInnerDistances();
                 this.estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
@@ -137,15 +139,15 @@ public final class VoidFinger {
     
     public static void main(String[] args) {
         System.out.println();
-        if (args.length < 2) {
+        if (args.length < 3) {
             System.out.println("Invalid argument count.");
             System.out.println("Proper syntax is:");
-            System.out.println("java VoidFinger [PDB code] [threads] <verbose>");
+            System.out.println("java VoidFinger [PDB code] [threads] [scaling factor] <verbose>");
             return;
         }
-        boolean verbose = (args.length == 3 && args[2].equalsIgnoreCase("verbose"))?true:false;
+        boolean verbose = (args.length == 4 && args[3].equalsIgnoreCase("verbose"))?true:false;
         try {
-            VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), verbose);
+            VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Float.parseFloat(args[2]), verbose);
             theFinger.performAnalysis();
             System.out.println();
             System.out.print("Saving results to disk... ");

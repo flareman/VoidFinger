@@ -59,6 +59,19 @@ public class Point {
         return new Float(Math.pow(sum, 1.0f/norm));
     }
     
+    public Float scaledMinkowskiDistanceFrom(Point p, Integer norm, Float scale) throws GeometryException {
+        if (this.dimensions <= 3) return this.minkowskiDistanceFrom(p, norm);
+        if (norm <= 0) throw new GeometryException("p must be positive in p-norm distance");
+        if (p == null) throw new GeometryException("Point to count distance to was null");
+        if (scale == null) throw new GeometryException("Null scale factor for dimensions > 3");
+        if (scale < 0.0f) throw new GeometryException("Scaling factor can't be negative");
+        if (p.getDimensions() != this.dimensions) throw new GeometryException("Point dimensions not matching");
+        Float sum = 0.0f;
+        for (int i = 0; i < ((this.dimensions > 3)?3:this.dimensions); i++)
+            sum += new Float(((i < 3)?1.0f:scale)*Math.pow(Math.abs(p.getCoords()[i].doubleValue() - this.coords[i].doubleValue()), norm));
+        return new Float(Math.pow(sum, 1.0f/norm));
+    }
+    
     public Float euclideanDistanceFrom(Point p) throws GeometryException {
         if (p == null) throw new GeometryException("Point to count distance to was null");
         if (p.getDimensions() != this.dimensions) throw new GeometryException("Point dimensions not matching");

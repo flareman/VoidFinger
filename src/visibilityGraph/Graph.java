@@ -18,9 +18,10 @@ public class Graph {
     private ArrayList<Float> costs = new ArrayList<Float>();
     private final Object dijkstraMutex = new Object();
     private final Object edgeMutex = new Object();
+    private Float scaleFactor;
     public int totalEdges = 0;
     
-    public Graph(ArrayList<Point> nds, Octree tree, int threads) throws GraphException {
+    public Graph(ArrayList<Point> nds, Octree tree, int threads, float factor) throws GraphException {
         if (nds.isEmpty())
             throw new EmptyNodeSetGraphException();
         if (nds.get(0).getDimensions() < tree.getDimensions())
@@ -31,6 +32,7 @@ public class Graph {
         }
         this.surface = tree;
         this.numOfThreads = threads;
+        this.scaleFactor = factor;
     }
     
     public int getNodeCount() {return this.nodes.size();}
@@ -87,7 +89,7 @@ public class Graph {
 
             if (visible) {
                 synchronized(this.edgeMutex) {
-                    Float dist = this.nodes.get(i).getPoint().minkowskiDistanceFrom(this.nodes.get(j).getPoint(), 2);
+                    Float dist = this.nodes.get(i).getPoint().scaledMinkowskiDistanceFrom(this.nodes.get(j).getPoint(), 2, this.scaleFactor);
                     this.edges.get(i).add(new GraphEdge(j, dist));
                     this.edges.get(j).add(new GraphEdge(i, dist));
                     this.totalEdges++;
