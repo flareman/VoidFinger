@@ -114,7 +114,7 @@ public class Histogram {
                 bins[i] = Integer.parseInt(nextBin);
                 if (bins[i++] < 0) throw new InvalidFileSyntaxHistogramException();
             }
-            if (i != c - 1) throw new InvalidFileSyntaxHistogramException();
+            if (i != c) throw new InvalidFileSyntaxHistogramException();
         }
         String[] tokens = filename.split(".");
         String temp = "";
@@ -133,7 +133,7 @@ public class Histogram {
     }
 
     public Float getDistanceFromHistogram(final Histogram target) {
-        if (this.count != target.count)
+        if (!this.count.equals(target.count))
             throw new IllegalArgumentException("Histograms must have equal count of bins");
         ArrayList<Float> left = new ArrayList<>();
         ArrayList<Float> right = new ArrayList<>();
