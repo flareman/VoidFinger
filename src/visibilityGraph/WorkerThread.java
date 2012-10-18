@@ -31,7 +31,7 @@ class DijkstraThread extends WorkerThread {
     
     @Override
     public void run() {
-        ArrayList<Float> localCosts = new ArrayList<Float>();
+        ArrayList<Float> localCosts = new ArrayList<>();
         for (int i = this.threadID; i < this.vGraph.getNodeCount(); i += this.numOfThreads) {
             for (int j = i+1; j < this.vGraph.getNodeCount(); j++) {
                 Float f = this.vGraph.calculateInnerDistanceForNodes(i, j);

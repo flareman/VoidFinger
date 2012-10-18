@@ -19,7 +19,7 @@ public class FilterClusterEngine {
     private KDTree kdtree;
     private Integer count = 0;
     private Integer repetitions = 0;
-    private ArrayList<FCECenter> centers = new ArrayList<FCECenter>();
+    private ArrayList<FCECenter> centers = new ArrayList<>();
     
     public FilterClusterEngine(KDTree tree, Integer count) throws FCEException {
         if (tree == null)
@@ -32,7 +32,7 @@ public class FilterClusterEngine {
 
     private void generateRandomCenters() {
         this.centers.clear();
-        ArrayList<Integer> newCenterIDs = new ArrayList<Integer>();
+        ArrayList<Integer> newCenterIDs = new ArrayList<>();
         ArrayList<Point> points = this.kdtree.getAllPoints();
         int i = this.count;
         while (i > 0) {
@@ -50,7 +50,7 @@ public class FilterClusterEngine {
     
     private void filter(KDTreeCell cell, ArrayList<FCECenter> candidates) {
         try {
-            ArrayList<FCECenter> input = new ArrayList<FCECenter>();
+            ArrayList<FCECenter> input = new ArrayList<>();
             input.addAll(candidates);
             if (cell.isLeafNode() && !cell.isEmpty()) {
                 Collections.sort(input, new CenterDistanceComparator(cell.getPoint()));
@@ -69,7 +69,7 @@ public class FilterClusterEngine {
                         it.remove();
                 }
                 if (input.size() > 1) {
-                    ArrayList<FCECenter> newCandidates = new ArrayList<FCECenter>();
+                    ArrayList<FCECenter> newCandidates = new ArrayList<>();
                     newCandidates.addAll(input);
                     this.filter(cell.getChild(0), newCandidates);
                     this.filter(cell.getChild(1), input);
@@ -79,8 +79,7 @@ public class FilterClusterEngine {
                 }
             }
         } catch (CenterDistanceComparatorException cdce) {
-        } catch (GeometryException ge) {
-        } catch (KDTreeCellException kdtce) {
+        } catch (GeometryException | KDTreeCellException ge) {
         } catch (FCEException fcee) {}
     }
     
@@ -131,7 +130,7 @@ public class FilterClusterEngine {
     }
 
     public ArrayList<Point> getClusterCenters(EPArray potentials) {
-        ArrayList<Point> result = new ArrayList<Point>();
+        ArrayList<Point> result = new ArrayList<>();
         for (FCECenter c: this.centers)
             try {
                 Float[] coords = new Float[4];

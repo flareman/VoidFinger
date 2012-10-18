@@ -6,8 +6,8 @@ import java.util.Iterator;
 import java.util.Set;
 
 public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
-    private ArrayList<QueueNode> innerList = new ArrayList<QueueNode>();
-    private ArrayList<Integer> nodeIDs = new ArrayList<Integer>();
+    private ArrayList<QueueNode> innerList = new ArrayList<>();
+    private ArrayList<Integer> nodeIDs = new ArrayList<>();
     
     public PriorityQueue(int startID, int capacity) {
         super();
@@ -24,19 +24,19 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
     }
 
     public PriorityQueue() { super(); }
-    public void clear() { this.innerList.clear(); this.nodeIDs.clear(); }
-    public int size() { return this.innerList.size(); }
-    public boolean isEmpty() { return this.innerList.isEmpty(); }
-    public boolean add(QueueNode qn) { return this.push(qn); }
-    public QueueNode remove() { return this.pop(); }
-    public QueueNode get() { return this.peek(); }
     public QueueNode peek() { if (!this.innerList.isEmpty()) return this.innerList.get(0); return null;}
-    public <T> T[] toArray(T[] array) { return this.innerList.toArray(array); }
-    public Object[] toArray() { return this.innerList.toArray(); }
-    public Iterator<QueueNode> iterator() { return this.innerList.iterator(); }
-    public boolean remove(Object qn) { throw new UnsupportedOperationException(); }
-    public boolean removeAll(Collection<?> coll) { throw new UnsupportedOperationException(); }
-    public boolean retainAll(Collection<?> coll) { throw new UnsupportedOperationException(); }
+    public QueueNode get() { return this.peek(); }
+    public QueueNode remove() { return this.pop(); }
+    @Override public void clear() { this.innerList.clear(); this.nodeIDs.clear(); }
+    @Override public int size() { return this.innerList.size(); }
+    @Override public boolean isEmpty() { return this.innerList.isEmpty(); }
+    @Override public boolean add(QueueNode qn) { return this.push(qn); }
+    @Override public <T> T[] toArray(T[] array) { return this.innerList.toArray(array); }
+    @Override public Object[] toArray() { return this.innerList.toArray(); }
+    @Override public Iterator<QueueNode> iterator() { return this.innerList.iterator(); }
+    @Override public boolean remove(Object qn) { throw new UnsupportedOperationException(); }
+    @Override public boolean removeAll(Collection<?> coll) { throw new UnsupportedOperationException(); }
+    @Override public boolean retainAll(Collection<?> coll) { throw new UnsupportedOperationException(); }
 
     private int compareNodes(int i, int j) { return this.innerList.get(i).compareTo(this.innerList.get(j)); }
 
@@ -72,12 +72,14 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
         }
     }
 
+    @Override
     public boolean contains(Object qn) {
         if (qn instanceof QueueNode == false) throw new ClassCastException();
         if (this.nodeIDs.get(((QueueNode)qn).getNodeID()) == -1) return false;
         return true;
     }
     
+    @Override
     public boolean containsAll(Collection<?> coll) {
         for (Iterator<?> it = coll.iterator(); it.hasNext();) {
             if (!this.contains(it.next())) return false;
@@ -85,6 +87,7 @@ public class PriorityQueue extends java.lang.Object implements Set<QueueNode> {
         return true;
     }
 
+    @Override
     public boolean addAll(Collection<? extends QueueNode> coll) {
         if (coll == null) throw new NullPointerException();
         boolean modified = false;

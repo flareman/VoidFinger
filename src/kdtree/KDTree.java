@@ -1,16 +1,14 @@
 package kdtree;
 
-import geometry.GeometryException;
 import geometry.Point;
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import octree.Octree;
 
 public class KDTree {
     private Integer dimensions;
     private KDTreeCell root;
-    private ArrayList<Point> points = new ArrayList<Point>();
+    private ArrayList<Point> points = new ArrayList<>();
     private Float length, threshold;
     
     // This implementation of the class is feature-complete for constructing a
@@ -41,12 +39,12 @@ public class KDTree {
             // compared with the naive approach of selecting the median point for splitting
             // at each recursion step, while guaranteeing the creation of a quality, balanced
             // tree.
-            ArrayList<ArrayList<Point>> pointArrays = new ArrayList<ArrayList<Point>>();
+            ArrayList<ArrayList<Point>> pointArrays = new ArrayList<>();
             this.points.addAll(octree.getAllVertices());
             Collections.sort(this.points, new CoordinateComparator(0));
             pointArrays.add(this.points);
             for (int i = 1; i < dimensions; i++) {
-                ArrayList<Point> temp = new ArrayList<Point>();
+                ArrayList<Point> temp = new ArrayList<>();
                 temp.addAll(this.points);
                 Collections.sort(temp, new CoordinateComparator(i));
                 pointArrays.add(temp);
@@ -58,10 +56,8 @@ public class KDTree {
             this.threshold = octree.getMinNodeLength();
         } catch (CoordinateComparatorException cce) {
             this.root =  null;
-            cce.printStackTrace();
         } catch (KDTreeCellException kdtce) {
             this.root = null;
-            kdtce.printStackTrace();
         }
     }
     

@@ -34,8 +34,8 @@ public class KDTreeCell {
         this.depth = depth;
         if (points != null) {
             if (points.get(0).size() > 2) {
-                ArrayList<ArrayList<Point>> leftPoints = new ArrayList<ArrayList<Point>>();
-                ArrayList<ArrayList<Point>> rightPoints = new ArrayList<ArrayList<Point>>();
+                ArrayList<ArrayList<Point>> leftPoints = new ArrayList<>();
+                ArrayList<ArrayList<Point>> rightPoints = new ArrayList<>();
                 ArrayList<Point> master = points.get(this.splitDimension);
                 Integer medianID = master.size()/2;
                 try {
@@ -54,8 +54,8 @@ public class KDTreeCell {
                     this.split = master.get(medianID).getCoordinate(this.splitDimension);
                 } catch (GeometryException ge) {throw new KDTreeCellWrongPointCoordinatesException(); }
                 for (int i = 0; i < this.dimensions; i++) {
-                    ArrayList<Point> left = new ArrayList<Point>();
-                    ArrayList<Point> right = new ArrayList<Point>();
+                    ArrayList<Point> left = new ArrayList<>();
+                    ArrayList<Point> right = new ArrayList<>();
                     if (i == this.splitDimension) {
                         left.addAll(master.subList(0, medianID));
                         right.addAll(master.subList(medianID, master.size()));
@@ -89,7 +89,7 @@ public class KDTreeCell {
                         Point unique = rightPoints.get(0).get(0);
                         rightPoints.clear();
                         for (int i = 0; i < this.dimensions; i++) {
-                            ArrayList<Point> temp = new ArrayList<Point>();
+                            ArrayList<Point> temp = new ArrayList<>();
                             temp.add(unique);
                             rightPoints.add(temp);
                         }
@@ -118,11 +118,11 @@ public class KDTreeCell {
                 } catch (GeometryException ge) {}
             } else switch (points.get(0).size()) {
                 case 2:
-                    ArrayList<ArrayList<Point>> leftPoints = new ArrayList<ArrayList<Point>>();
-                    ArrayList<ArrayList<Point>> rightPoints = new ArrayList<ArrayList<Point>>();
+                    ArrayList<ArrayList<Point>> leftPoints = new ArrayList<>();
+                    ArrayList<ArrayList<Point>> rightPoints = new ArrayList<>();
                     for (int i = 0; i < this.dimensions; i++) {
-                        ArrayList<Point> temp = new ArrayList<Point>();
-                        ArrayList<Point> temp2 = new ArrayList<Point>();
+                        ArrayList<Point> temp = new ArrayList<>();
+                        ArrayList<Point> temp2 = new ArrayList<>();
                         temp.add(points.get(0).get(0));
                         temp2.add(points.get(0).get(1));
                         leftPoints.add(temp);

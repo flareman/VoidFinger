@@ -11,11 +11,11 @@ import octree.Octree;
 import octree.OctreeException;
 
 public class Graph {
-    private ArrayList<GraphNode> nodes = new ArrayList<GraphNode>();
-    public ArrayList<ArrayList<GraphEdge>> edges = new ArrayList<ArrayList<GraphEdge>>();
+    private ArrayList<GraphNode> nodes = new ArrayList<>();
+    public ArrayList<ArrayList<GraphEdge>> edges = new ArrayList<>();
     private Octree surface;
     private int numOfThreads;
-    private ArrayList<Float> costs = new ArrayList<Float>();
+    private ArrayList<Float> costs = new ArrayList<>();
     private final Object dijkstraMutex = new Object();
     private final Object edgeMutex = new Object();
     private Float scaleFactor;
@@ -55,13 +55,13 @@ public class Graph {
     }
     
     private ArrayList<Point> getOctreeLeafs(Point origin, Vector ray) throws GeometryException {
-        ArrayList<Point> result = new ArrayList<Point>();
+        ArrayList<Point> result = new ArrayList<>();
         recurseGetOctreeLeafs(origin, ray, result, this.surface.getRoot());
         return result;
     }
     
     public void addEdgeForVisible(int i, int j) {
-        ArrayList<Float> projections = new ArrayList<Float>();
+        ArrayList<Float> projections = new ArrayList<>();
         try {
             Vector ray = new Vector(this.nodes.get(i).getPoint(), this.nodes.get(j).getPoint(), 3);
             ArrayList<Point> visibleList = getOctreeLeafs(this.nodes.get(i).getPoint().reducedDimensionsPoint(3), ray);
@@ -95,9 +95,7 @@ public class Graph {
                     this.totalEdges++;
                 }
             }
-        } catch (GeometryException ge) {
-        } catch (GraphException gre) {
-        } catch (OctreeException oe) {
+        } catch (GeometryException | GraphException | OctreeException ge) {
         }
     }
     
@@ -116,7 +114,7 @@ public class Graph {
     private ArrayList<GraphEdge> getAdjacencies(int node) throws GraphException {
         if (node < 0 || node > this.nodes.size() - 1)
             throw new InvalidMethodArgumentGraphException();
-        ArrayList<GraphEdge> result = new ArrayList<GraphEdge>();
+        ArrayList<GraphEdge> result = new ArrayList<>();
         result.addAll(this.edges.get(node));
         return result;
     }

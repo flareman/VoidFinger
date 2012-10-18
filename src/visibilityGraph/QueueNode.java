@@ -14,8 +14,10 @@ public class QueueNode extends java.lang.Object implements Comparable<QueueNode>
     
     public Integer getNodeID() { return this.nodeID; }
     public Float getTentativeDistance() { return this.tentativeDistance; }
+    @Override
     public int hashCode() { return ((this.tentativeDistance.hashCode()+this.nodeID.hashCode())/2)+14; }
     
+    @Override
     public boolean equals(Object o) {
         if (o instanceof QueueNode == false) throw new ClassCastException();
         if (!this.tentativeDistance.equals(((QueueNode)o).tentativeDistance) ||
@@ -23,6 +25,7 @@ public class QueueNode extends java.lang.Object implements Comparable<QueueNode>
             return false; else return true;
     }
     
+    @Override
     public int compareTo(QueueNode qn) {
         return (this.tentativeDistance < qn.tentativeDistance)?-1:((this.tentativeDistance > qn.tentativeDistance)?1:0);
     }

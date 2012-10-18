@@ -11,6 +11,7 @@ public class KDEDistance implements Comparable<KDEDistance> {
         this.distance = dist;
     }
     
+    @Override
     public int compareTo(KDEDistance e) {
         return Float.compare(this.distance, e.distance);
     }

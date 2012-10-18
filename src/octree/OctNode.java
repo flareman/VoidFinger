@@ -17,7 +17,7 @@ public class OctNode {
     private int type = OCTNODE_EMPTY;
     private Boolean sign = false;
     private Boolean[] signs = new Boolean[8];
-    private ArrayList<OctNode> children = new ArrayList<OctNode>();
+    private ArrayList<OctNode> children = new ArrayList<>();
     private Float length;
     private Point point, origin;
 
@@ -177,7 +177,7 @@ public class OctNode {
     }
 
     public ArrayList<Point> getAllVertices() throws OctNodeException {
-        ArrayList<Point> result = new ArrayList<Point>();
+        ArrayList<Point> result = new ArrayList<>();
         switch (type) {
             case OCTNODE_INTERMEDIATE:
                 for (OctNode node: this.children)

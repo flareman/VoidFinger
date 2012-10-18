@@ -2,6 +2,8 @@ package voidfinger;
 
 import geometry.GeometryException;
 import geometry.Point;
+import histogram.Histogram;
+import histogram.HistogramException;
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -25,6 +27,7 @@ public final class VoidFinger {
     private EPArray potentials = null;
     private ArrayList<Point> centers = null;
     private KernelDensityEstimator estimator = null;
+    private Histogram histogram = null;
 
     public int getElapsedSeconds() {
         this.time = System.nanoTime() - this.time;
@@ -81,6 +84,9 @@ public final class VoidFinger {
                 ArrayList<Float> result = graph.getInnerDistances();
                 System.out.println("done");
                 System.out.println(result.size()+" inner distances calculated.");
+                System.out.print("Building histogram... ");
+                this.histogram = Histogram.createFromCollection(this.filename, 128, result);
+                System.out.println("done");
                 System.out.print("Building kernel density estimator... ");
                 this.estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
                 System.out.println("done");
@@ -92,35 +98,36 @@ public final class VoidFinger {
                 System.out.println(graph.totalEdges+" edges, "+result.size()+" IDs.");
                 System.out.println("Kernel density estimator built.");
             }
-        } catch (GraphException ge) {
+        } catch (GraphException | HistogramException ge) {
         }
     }
         
-    public void saveKDEToFiles() {
+    public void saveResultsToFiles() {
         try {
             this.estimator.writeEstimatorToFile();
             this.estimator.writeApproximateCurveToFile();
+            this.histogram.saveToFile();
         } catch (IOException ioe) {}
     }
     
     public ArrayList<Point> loadClusterCenters(String filename) throws IOException {
         if (filename == null || filename.equals("")) throw new IllegalArgumentException();
-        ArrayList<Point> result = new ArrayList<Point>();
-        BufferedReader input = new BufferedReader(new FileReader(filename));
-        String line;
-        while (input.ready()) {
-            line = input.readLine();
-            if (line.equals("")) continue;
-            String[] tokens = line.split("\t");
-            if (tokens.length != 3) throw new IllegalArgumentException("Invalid cluster center file syntax");
-            Float[] coords = new Float[4];
-            coords[0] = Float.parseFloat(tokens[0]);
-            coords[1] = Float.parseFloat(tokens[1]);
-            coords[2] = Float.parseFloat(tokens[2]);
-            coords[3] = this.potentials.getPotentialForCoordinates(coords[0], coords[1], coords[2]);
-            try { result.add(new Point(coords)); } catch (GeometryException ge) {}
-        }            
-        input.close();
+        ArrayList<Point> result = new ArrayList<>();
+        try (BufferedReader input = new BufferedReader(new FileReader(filename))) {
+            String line;
+            while (input.ready()) {
+                line = input.readLine();
+                if (line.equals("")) continue;
+                String[] tokens = line.split("\t");
+                if (tokens.length != 3) throw new IllegalArgumentException("Invalid cluster center file syntax");
+                Float[] coords = new Float[4];
+                coords[0] = Float.parseFloat(tokens[0]);
+                coords[1] = Float.parseFloat(tokens[1]);
+                coords[2] = Float.parseFloat(tokens[2]);
+                coords[3] = this.potentials.getPotentialForCoordinates(coords[0], coords[1], coords[2]);
+                try { result.add(new Point(coords)); } catch (GeometryException ge) {}
+            }
+        }
         return result;
     }
     
@@ -137,20 +144,16 @@ public final class VoidFinger {
             VoidFinger theFinger = new VoidFinger(args[0], Integer.parseInt(args[1]), Float.parseFloat(args[2]), verbose);
             theFinger.performAnalysis();
             System.out.println();
-            System.out.print("Saving KDE sample plot to disk... ");
-            theFinger.saveKDEToFiles();
+            System.out.print("Saving output files to disk... ");
+            theFinger.saveResultsToFiles();
             System.out.println("done");
             System.out.println("Total running time: "+theFinger.getElapsedSeconds()+" sec.");
-        } catch (IllegalArgumentException iae) {
+        } catch (IllegalArgumentException | OctreeException | EPArrayException iae) {
             System.out.println(iae.getLocalizedMessage());
         } catch (FileNotFoundException fe) {
             System.out.println("File "+args[0]+" not found; you may have mistyped the filename.");
         } catch (IOException ioe) {
             System.out.println("An error occured when reading/writing to the disk; please, try again.");
-        } catch (OctreeException oe) {
-            System.out.println(oe.getLocalizedMessage());
-        } catch (EPArrayException epae) {
-            System.out.println(epae.getLocalizedMessage());
         }
     }
 }

@@ -15,6 +15,7 @@ class CoordinateComparator implements Comparator<Point> {
         else this.dimension = dimension;
     }
     
+    @Override
     public int compare(Point left, Point right) {
         try {
             return (left.getCoordinate(this.dimension) > right.getCoordinate(this.dimension))?1:((left.getCoordinate(this.dimension) < right.getCoordinate(this.dimension))?-1:0);

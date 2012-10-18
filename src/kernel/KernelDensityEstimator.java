@@ -24,7 +24,7 @@ public class KernelDensityEstimator {
     private Float h = 0.0f;
     private Float margin = 1.0f;
     private Boolean optimalBandwidth = false;
-    private ArrayList<Float> values = new ArrayList<Float>();
+    private ArrayList<Float> values = new ArrayList<>();
     private String name = "";
     
     private void optimizeBandwidth() {
@@ -149,43 +149,48 @@ public class KernelDensityEstimator {
 
     public void writeEstimatorToFile() throws IOException {
         if (this.values.isEmpty()) return;
-        PrintWriter out = new PrintWriter(new FileWriter(this.name+".kde"));
-        out.println(this.name);
-        out.println(this.kernel);
-        if (this.optimalBandwidth) out.println("-1");
-        else out.println(this.h);
-        out.println(this.n);
-        for (Float f: this.values) out.println(f);
-        out.close();
+        try (PrintWriter out = new PrintWriter(new FileWriter(this.name+".kde"))) {
+            out.println(this.name);
+            out.println(this.kernel);
+            if (this.optimalBandwidth) out.println("-1");
+            else out.println(this.h);
+            out.println(this.n);
+            for (Float f: this.values) out.println(f);
+        }
     }
 
     public static KernelDensityEstimator readEstimatorFromFile(String filename) throws IOException {
-        BufferedReader input = new BufferedReader(new FileReader(filename));
-        String name = input.readLine();
-        int kernel = Integer.parseInt(input.readLine());
-        float bandwidth = Float.parseFloat(input.readLine());
-        boolean optimal = (bandwidth < 0.0f)?true:false;
-        int count = Integer.parseInt(input.readLine());
-        ArrayList<Float> values = new ArrayList<Float>();
-        for (int i = 0; i < count; i++)
-            values.add(Float.parseFloat(input.readLine()));
-        input.close();
+        String name;
+        int kernel;
+        float bandwidth;
+        boolean optimal;
+        ArrayList<Float> values;
+        try (BufferedReader input = new BufferedReader(new FileReader(filename))) {
+            name = input.readLine();
+            kernel = Integer.parseInt(input.readLine());
+            bandwidth = Float.parseFloat(input.readLine());
+            optimal = (bandwidth < 0.0f)?true:false;
+            int count = Integer.parseInt(input.readLine());
+            values = new ArrayList<>();
+            for (int i = 0; i < count; i++)
+                values.add(Float.parseFloat(input.readLine()));
+        }
         if (optimal) return generateEstimatorFromValues(name, kernel, values);
         else return generateEstimatorFromValues(name, kernel, bandwidth, values);
     }
     
     public void writeApproximateCurveToFile() throws IOException {
         if (this.values.isEmpty()) return;
-        PrintWriter out = new PrintWriter(new FileWriter(this.name+".kde.txt"));
-        out.println(this.name);
-        out.println(this.getMin());
-        out.println(this.getMax());
-        out.println(KDE_APPROX_CURVE_RESOLUTION);
-        int steps = (int)((this.getMax() - this.getMin()) / KDE_APPROX_CURVE_RESOLUTION) + 1;
-        out.println(steps);
-        for (int i = 0; i < steps; i++)
-            out.println(this.getValue(this.getMin()+i*KDE_APPROX_CURVE_RESOLUTION));
-        out.close();
+        try (PrintWriter out = new PrintWriter(new FileWriter(this.name+".kde.txt"))) {
+            out.println(this.name);
+            out.println(this.getMin());
+            out.println(this.getMax());
+            out.println(KDE_APPROX_CURVE_RESOLUTION);
+            int steps = (int)((this.getMax() - this.getMin()) / KDE_APPROX_CURVE_RESOLUTION) + 1;
+            out.println(steps);
+            for (int i = 0; i < steps; i++)
+                out.println(this.getValue(this.getMin()+i*KDE_APPROX_CURVE_RESOLUTION));
+        }
     }
     
     public Float getDistanceFromKDE(final KernelDensityEstimator target) {
@@ -194,8 +199,9 @@ public class KernelDensityEstimator {
         final KernelDensityEstimator source = this;
         int points = (int)((b - a) / 5);
         points = (points % 3 == 0)?points / 3:(points / 3)+1;
-        return this.integrate(new Integrable() { public Float getValue(Float x) {
-            return Math.abs(source.getValue(x) - target.getValue(x));
-        } }, a, b, points);
+        return this.integrate(new Integrable() {@Override
+            public Float getValue(Float x) {
+                return Math.abs(source.getValue(x) - target.getValue(x));
+            } }, a, b, points);
     }
 }
