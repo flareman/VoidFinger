@@ -17,7 +17,7 @@ public class Histogram {
     private Integer count;
     private String name = "";
     
-    public Histogram(String filename, Integer n, Float min, Float max) throws HistogramException {
+    public Histogram(String name, Integer n, Float min, Float max) throws HistogramException {
         if (n <= 0)
             throw new InvalidCreationArgumentsHistogramException();
         if (min > max)
@@ -28,7 +28,7 @@ public class Histogram {
         this.bins = new Integer[this.count];
         Arrays.fill(this.bins, 0);
         this.h = 1.0f/n;
-        this.name = filename;
+        this.name = name;
     }
     
     public Histogram(String filename, Integer n, Float min, Float max, Integer[] bins) throws HistogramException {
@@ -43,7 +43,7 @@ public class Histogram {
         this.count = n;
         this.h = 1.0f/n;
         this.bins = Arrays.copyOf(bins, this.count);
-        this.name = filename;
+        this.name = name;
     }
 
     public void addPoint(Float p) {
@@ -116,15 +116,18 @@ public class Histogram {
             }
             if (i != c - 1) throw new InvalidFileSyntaxHistogramException();
         }
-        return new Histogram(filename, c, m, x, bins);
+        String[] tokens = filename.split(".");
+        String temp = "";
+        for (int i = 0; i < tokens.length; i++) temp += tokens[i];
+        return new Histogram(temp, c, m, x, bins);
     }
 
-    static public Histogram createFromCollection(String filename, Integer n, Collection<Float> coll) throws HistogramException {
+    static public Histogram createFromCollection(String name, Integer n, Collection<Float> coll) throws HistogramException {
         if (n < 1) throw new InvalidCreationArgumentsHistogramException();
         if (coll == null) throw new NullPointerException();
         if (coll.isEmpty()) throw new InvalidCreationArgumentsHistogramException();
         Histogram result;
-        result = new Histogram(filename, n, Collections.min(coll), Collections.max(coll));
+        result = new Histogram(name, n, Collections.min(coll), Collections.max(coll));
         result.addAll(coll);
         return result;
     }

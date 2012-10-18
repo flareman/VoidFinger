@@ -94,6 +94,7 @@ public final class VoidFinger {
                 Graph graph = new Graph(this.centers, this.octree, this.threads, this.factor);
                 graph.buildVisibilityGraph();
                 ArrayList<Float> result = graph.getInnerDistances();
+                this.histogram = Histogram.createFromCollection(this.filename, 128, result);
                 this.estimator = KernelDensityEstimator.generateEstimatorFromValues(this.filename, KernelDensityEstimator.KDE_GAUSSIAN, result);
                 System.out.println(graph.totalEdges+" edges, "+result.size()+" IDs.");
                 System.out.println("Kernel density estimator built.");
