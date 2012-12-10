@@ -1,0 +1,16 @@
+  show_assignments yes			# show final cluster assignments
+  dim 3					# dimension
+
+  data_size POINTS				# number of data points
+  seed 1				# random number seed
+read_data_pts FILENAME		# read data points
+
+  kcenters CENTERS				# number of centers
+  max_tot_stage 4000 0 0 0		# number of stages
+  min_consec_rdl 0.10			# minimum improvement for Lloyd's
+  init_prob_accept 0.50			# init. prob. of accept. for SA
+  temp_run_length  10			# number of runs per temp change
+  temp_reduc_fact  0.95			# temperature reduction factor
+
+  seed SEED				# use different seed
+run_kmeans hybrid			# run with this algorithm

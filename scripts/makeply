@@ -1,0 +1,14 @@
+#!/bin/bash
+echo ply > $2.ply
+echo format ascii 1.0 >> $2.ply
+vertices=`head -n 3 $1.vert | tail -n 1 | awk '{print $1;}'`
+faces=`head -n 3 $1.face | tail -n 1 | awk '{print $1;}'`
+echo element vertex $vertices >> $2.ply
+echo property float32 x >> $2.ply
+echo property float32 y >> $2.ply
+echo property float32 z >> $2.ply
+echo element face $faces >> $2.ply
+echo property list uint8 int32 vertex_indices >> $2.ply
+echo end_header >> $2.ply
+awk 'FNR>3{print $1 "\t" $2 "\t" $3}' $1.vert >> $2.ply
+awk 'FNR>3{print "3\t" $1-1 "\t" $2-1 "\t" $3-1}' $1.face >> $2.ply

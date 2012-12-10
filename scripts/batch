@@ -1,0 +1,60 @@
+#!/bin/bash
+echo Preparing...
+rm -rf ply pqr vf output
+mkdir ply pqr vf output
+echo Preparing geometry:
+for file in $1/*.pdb
+do
+	filename=$(basename $file)
+	filename="${filename%.*}"
+    echo $filename
+    ./pdb_to_xyzrn2 $file > ply/$filename.xyzrn
+	./msms -if ply/$filename.xyzrn -of ply/$filename -de $2 -pr $3 > /dev/null
+	./makeply ply/$filename ply/$filename
+	./pdb2pqr.py $file pqr/$filename.pqr --apbs-input --ff=PARSE > /dev/null
+done
+rm ply/*.vert ply/*.face ply/*.xyzrn
+echo
+echo Mending and clustering:
+random=$RANDOM
+for file in ply/*.ply
+do
+	filename=$(basename $file)
+	filename="${filename%.*}"
+    echo $filename
+    ./mend $file $4 $5 vf
+    ./cluster vf/$filename.point $6 $random
+    mv vf/$filename.point.cluster vf/$filename.cluster
+done
+rm vf/*.point
+echo
+echo EP calculation:
+for file in pqr/*.in
+do
+	filename=$(basename $file)
+	filename="${filename%.*}"
+    echo $filename
+    (cd pqr && exec ../apbs --output-file=trash $filename.in > /dev/null)
+    mv pqr/pot.dx vf/$filename.pot.dx
+done
+echo
+echo VoidFinger: 
+for file in vf/*.sog
+do
+	filename=$(basename $file)
+	filename="${filename%.*}"
+    echo $filename.pdb
+    (cd vf && exec java -jar ../VoidFinger.jar $filename $7 $8 > /dev/null)
+done
+echo
+echo Moving results to output folder...
+mv vf/*.hist vf/*.txt vf/*.kde output/
+echo Done.
+echo Cleaning up...
+rm -rf ply pqr vf
+for file in output/*.txt
+do
+	./excelize $file
+done
+echo Done.
+echo Run complete.

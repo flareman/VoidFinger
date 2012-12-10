@@ -1,0 +1,11 @@
+#!/bin/bash
+filename=$(basename $1)
+filename="${filename%.*}"
+./polymender-dc $1 $2 $3 $4/$filename.sog > /dev/null
+./polymender-dc $1 $2 $3 $4/$filename.ply > /dev/null
+./convert -a $4/$filename.ply $4/$filename.ascii.ply
+vertices=`grep -an "element vertex" $4/$filename.ascii.ply | awk '{print $3;}'`
+headerend=`grep -an "end_header" $4/$filename.ascii.ply | sed -E 's/^([0-9]+):(.*)/\1/'`
+awk -v vertices=$vertices -v header=$headerend 'FNR>header&&FNR<1+vertices+header{print $0;}' $4/$filename.ascii.ply > $4/$filename.point.tmp
+cat $4/$filename.point.tmp > $4/$filename.point
+rm $4/$filename.point.tmp $4/$filename.ascii.ply $4/$filename.ply

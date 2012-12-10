@@ -1,0 +1,10 @@
+#!/bin/bash
+count=`wc -l $1 | awk '{print \$1;}'`
+cat template.in | sed "s,CENTERS,$2,;s,FILENAME,$1,;s,POINTS,$count,;s,SEED,$3," > $1.in
+./kmltest -i $1.in -o $1.out
+grep -E "^[ \t]*[0-9]+[ \t]+[0-9]+" $1.out | awk '{print $2 "\t" $3;}' > $1.tmp
+paste $1 $1.tmp > $1.tmc
+LC_NUMERIC=C LC_COLLATE=C LANG=C
+sort $1.tmc -k4,4n -k5,5n > $1.tms
+awk 'BEGIN{tmp=-1;}{if ($4 > tmp) { tmp = $4; print $1 "\t" $2 "\t" $3;} }' $1.tms > $1.cluster
+rm $1.in $1.out $1.tmp $1.tmc $1.tms
